@@ -1,0 +1,86 @@
+@page
+@model Promovert.Pages.NewsModel
+@{
+    ViewData["Title"] = "Novidades";
+}
+
+<section class="hero-section">
+  <div class="container">
+    <div class="page-hero">
+      <div class="page-hero-grid">
+        <div>
+          <div class="hero-kicker mb-3">
+            <i class="bi bi-megaphone-fill"></i>
+            <span>Atualizacoes do produto</span>
+          </div>
+          <h1 class="hero-title display-5 fw-bold mb-3">Novidades, melhorias e proximos passos.</h1>
+          <p class="lead muted mb-4">
+            Acompanha as alteracoes que tornam a Promovert mais rapida de configurar, mais facil de confiar e mais util para campanhas recorrentes.
+          </p>
+          <div class="hero-actions">
+            <button type="button" class="btn btn-primary btn-lg" data-auth-open="register">Criar conta</button>
+            <a class="btn btn-outline-secondary btn-lg" asp-page="/Pricing">Ver precos</a>
+          </div>
+        </div>
+
+        <div class="proof-panel">
+          <div class="proof-row">
+            <i class="bi bi-credit-card-2-front"></i>
+            <div>
+              <strong>Precos claros</strong>
+              <span>Creditos, ilimitado mensal e ilimitado anual no mesmo fluxo.</span>
+            </div>
+          </div>
+          <div class="proof-row">
+            <i class="bi bi-graph-up-arrow"></i>
+            <div>
+              <strong>Metricas de campanha</strong>
+              <span>Alcance, interacao e conversao indicam o que deve escalar.</span>
+            </div>
+          </div>
+          <div class="proof-row">
+            <i class="bi bi-send"></i>
+            <div>
+              <strong>Roadmap de canais</strong>
+              <span>Mais redes sociais e canais de outreach entram no produto por integracoes autorizadas.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="mt-5">
+      <div class="section-header">
+        <span class="section-eyebrow"><i class="bi bi-newspaper"></i> Ultimas notas</span>
+        <h2 class="section-title">Atualizacoes com impacto pratico.</h2>
+        <p class="section-copy">Cada melhoria deve tornar a criacao de campanha mais rapida, o preco mais claro ou o outreach mais fiavel.</p>
+      </div>
+
+      <div class="news-grid">
+        @foreach (var p in Model.Posts.OrderByDescending(x => x.DateUtc))
+        {
+          <article class="news-card">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+              <span class="tag">@p.Tag</span>
+              <span class="muted small">@p.DateUtc.ToString("yyyy-MM-dd")</span>
+            </div>
+            <h2>@p.Title</h2>
+            <p class="mb-0">@p.Excerpt</p>
+          </article>
+        }
+      </div>
+    </section>
+
+    <div class="conversion-band mt-5">
+      <div>
+        <span class="tag mb-2">Acompanha por dentro</span>
+        <h2 class="h3 fw-bold mb-2">A melhor forma de ver progresso e testar a app.</h2>
+        <p class="mb-0 muted">Cria uma conta gratis, gera campanhas com 5 creditos e acompanha as novas funcionalidades no dashboard.</p>
+      </div>
+      <div class="conversion-actions">
+        <button type="button" class="btn btn-primary btn-lg" data-auth-open="register">Comecar gratis</button>
+        <a class="btn btn-outline-secondary btn-lg" asp-page="/HowItWorks">Como funciona</a>
+      </div>
+    </div>
+  </div>
+</section>

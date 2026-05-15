@@ -1,0 +1,302 @@
+@using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.Extensions.Configuration
+@inject IAntiforgery Antiforgery
+@inject IConfiguration Configuration
+@{
+    var tokens = Antiforgery.GetAndStoreTokens(Context);
+    var googleConfigured = !string.IsNullOrWhiteSpace(Configuration["Authentication:Google:ClientId"]) &&
+        !string.IsNullOrWhiteSpace(Configuration["Authentication:Google:ClientSecret"]);
+    var currentPath = (Context.Request.Path.Value ?? "/").TrimEnd('/');
+    currentPath = string.IsNullOrWhiteSpace(currentPath) ? "/" : currentPath;
+    var isActive = (string pagePath) =>
+        currentPath.Equals(pagePath, StringComparison.OrdinalIgnoreCase) ||
+        (pagePath == "/Index" && currentPath == "/");
+    var isActivePrefix = (string pagePath) =>
+        currentPath.StartsWith(pagePath, StringComparison.OrdinalIgnoreCase);
+    var pricingActive = isActive("/Pricing");
+    var howItWorksActive = isActive("/HowItWorks");
+    var aboutActive = isActive("/About");
+    var newsActive = isActive("/News");
+    var dashboardActive = isActive("/App/Dashboard");
+}
+<!DOCTYPE html>
+<html lang="pt-PT" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Promovert</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="icon" type="image/svg+xml" href="~/assets/brand/Promovert_favicon.svg" asp-append-version="true" />
+    <link rel="icon" type="image/png" sizes="32x32" href="~/assets/brand/Promovert_favicon_32.png" asp-append-version="true" />
+    <link rel="apple-touch-icon" sizes="512x512" href="~/assets/brand/Promovert_icon_512_clean.png" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <meta name="csrf-token" content="@tokens.RequestToken" />
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-lg Promovert-nav">
+        <div class="container">
+            <a class="navbar-brand brand-lockup" asp-page="/Index" aria-label="Promovert home">
+                <span class="brand-mark">
+                    <img src="~/assets/brand/Promovert_brand_mark.svg" width="42" height="42" asp-append-version="true" alt="" />
+                </span>
+                <span class="brand-wordmark">
+                    <span class="brand-title">Promovert<sup>TM</sup></span>
+                    <span class="brand-subtitle">Motor de Campanhas Online</span>
+                </span>
+            </a>
+            <button class="navbar-toggler Promovert-menu-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Abrir menu de navegacao">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="nav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link @(pricingActive ? "active" : "")" asp-page="/Pricing" aria-current="@(pricingActive ? "page" : null)"><i class="bi bi-credit-card-2-front"></i><span>Precos</span></a></li>
+                    <li class="nav-item"><a class="nav-link @(howItWorksActive ? "active" : "")" asp-page="/HowItWorks" aria-current="@(howItWorksActive ? "page" : null)"><i class="bi bi-diagram-3"></i><span>Como funciona</span></a></li>
+                    <li class="nav-item"><a class="nav-link @(aboutActive ? "active" : "")" asp-page="/About" aria-current="@(aboutActive ? "page" : null)"><i class="bi bi-info-circle"></i><span>Sobre</span></a></li>
+                    <li class="nav-item"><a class="nav-link @(newsActive ? "active" : "")" asp-page="/News" aria-current="@(newsActive ? "page" : null)"><i class="bi bi-megaphone"></i><span>Novidades</span></a></li>
+
+                    @if (User?.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item"><a class="nav-link @(dashboardActive ? "active" : "")" asp-page="/App/Dashboard" aria-current="@(dashboardActive ? "page" : null)"><i class="bi bi-bar-chart-fill"></i><span>Dashboard</span></a></li>
+                    }
+                </ul>
+
+                <partial name="_LoginPartial" />
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main class="py-4">
+    @RenderBody()
+</main>
+
+<footer class="footer site-footer" id="site-footer">
+    <div class="container">
+        <div class="footer-main">
+            <div class="footer-brand-panel">
+                <a class="brand-lockup footer-brand" asp-page="/Index" aria-label="Promovert home">
+                    <span class="brand-mark footer-brand-mark">
+                        <img src="~/assets/brand/Promovert_brand_mark.svg" width="48" height="48" asp-append-version="true" alt="" />
+                    </span>
+                    <span class="brand-wordmark">
+                        <span class="brand-title">Promovert<sup>TM</sup></span>
+                        <span class="brand-subtitle">Motor de Campanhas Online</span>
+                    </span>
+                </a>
+                <p>Criacao de campanhas, conteudo social, outreach personalizado e tracking de conversao para aplicacoes online.</p>
+                <div class="footer-badges">
+                    <span><i class="bi bi-lightning-charge-fill"></i> Workflow de campanha</span>
+                    <span><i class="bi bi-shield-check"></i> Area segura</span>
+                </div>
+            </div>
+
+            <nav class="footer-nav-grid" aria-label="Footer navigation">
+                <div>
+                    <h2>Produto</h2>
+                    <a class="footer-link" asp-page="/Pricing">Precos</a>
+                    <a class="footer-link" asp-page="/HowItWorks">Como funciona</a>
+                    <a class="footer-link" asp-page="/News">Novidades</a>
+                </div>
+                <div>
+                    <h2>Plataforma</h2>
+                    <a class="footer-link" asp-page="/About">Sobre</a>
+                    <a class="footer-link" asp-page="/App/HelpDesk">Help desk</a>
+                    <a class="footer-link" asp-page="/App/Settings">Canais de marketing</a>
+                </div>
+                <div>
+                    <h2>Account</h2>
+                    @if (User?.Identity?.IsAuthenticated == true)
+                    {
+                        <a class="footer-link" asp-page="/App/Dashboard">Dashboard</a>
+                        <a class="footer-link" asp-page="/App/Alerts/Index">Campanhas</a>
+                        <a class="footer-link" asp-page="/App/Billing">Subscricao</a>
+                    }
+                    else
+                    {
+                        <button type="button" class="footer-link footer-button-link" data-auth-open="register">Criar conta</button>
+                        <button type="button" class="footer-link footer-button-link" data-auth-open="login">Entrar</button>
+                        <a class="footer-link" asp-page="/Pricing">Comparar precos</a>
+                    }
+                </div>
+            </nav>
+        </div>
+
+        <div class="footer-bottom">
+            <span>&copy; @DateTime.Now.Year Promovert. Todos os direitos reservados.</span>
+            <span>Workspace de marketing para planear, aprovar e medir campanhas.</span>
+        </div>
+    </div>
+</footer>
+
+<!-- Auth modal (login/register) -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered auth-modal">
+    <div class="modal-content">
+      <button type="button" class="auth-close" data-bs-dismiss="modal" aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+      <div class="auth-shell">
+        <section class="auth-form-panel">
+          <div class="auth-brand-row">
+            <span class="brand-mark brand-mark-sm">
+              <img src="~/assets/brand/Promovert_brand_mark.svg" width="36" height="36" asp-append-version="true" alt="" />
+            </span>
+            <span class="brand-wordmark">
+              <span class="brand-title">Promovert<sup>TM</sup></span>
+              <span class="brand-subtitle">Motor de Campanhas Online</span>
+            </span>
+            <span class="auth-security-badge">Acesso seguro</span>
+          </div>
+
+          <ul class="nav nav-pills auth-tabs" id="authTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-register" data-bs-toggle="pill" data-bs-target="#pane-register" type="button" role="tab">
+                Criar conta
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-login" data-bs-toggle="pill" data-bs-target="#pane-login" type="button" role="tab">
+                Entrar
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="pane-login" role="tabpanel">
+              <div class="auth-copy">
+                <h2>Bem-vindo de volta</h2>
+                <p>Entra para gerir campanhas, faturacao e canais de marketing.</p>
+              </div>
+
+              <div id="loginError" class="alert alert-danger d-none" role="alert"></div>
+              <form id="loginForm" class="auth-form" method="post" autocomplete="on">
+                <input type="hidden" name="ReturnUrl" id="loginReturnUrl" />
+                <div class="mb-3">
+                  <label class="form-label" for="authLoginEmail">Email</label>
+                  <div class="auth-field">
+                    <i class="bi bi-envelope"></i>
+                    <input id="authLoginEmail" name="Email" type="email" class="form-control" placeholder="you@example.com" required />
+                  </div>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label" for="authLoginPassword">Password</label>
+                  <div class="auth-field">
+                    <i class="bi bi-lock"></i>
+                    <input id="authLoginPassword" name="Password" type="password" class="form-control" placeholder="Your password" required />
+                  </div>
+                </div>
+                <div class="auth-options">
+                  <label class="form-check">
+                    <input class="form-check-input" type="checkbox" name="RememberMe" />
+                    <span class="form-check-label">Lembrar-me</span>
+                  </label>
+                  <a class="small" asp-area="Identity" asp-page="/Account/ForgotPassword">Esqueceste a password?</a>
+                </div>
+                <button class="btn btn-primary auth-submit" type="submit">
+                  <i class="bi bi-box-arrow-in-right"></i>
+                  Entrar
+                </button>
+                <a class="btn auth-google @(googleConfigured ? "" : "disabled")" href="/auth/google" data-google-auth aria-disabled="@(!googleConfigured)">
+                  <i class="bi bi-google"></i> Continuar com Google
+                </a>
+                @if (!googleConfigured)
+                {
+                    <div class="auth-provider-note">
+                      <i class="bi bi-info-circle"></i>
+                      O login Google precisa das credenciais Authentication:Google.
+                    </div>
+                }
+              </form>
+            </div>
+
+            <div class="tab-pane fade" id="pane-register" role="tabpanel">
+              <div class="auth-copy">
+                <h2>Cria a tua conta</h2>
+                <p>Comeca com creditos gratis e faz upgrade quando o workflow de campanhas crescer.</p>
+              </div>
+
+              <div id="registerError" class="alert alert-danger d-none" role="alert"></div>
+              <form id="registerForm" class="auth-form" method="post" autocomplete="on">
+                <input type="hidden" name="ReturnUrl" id="registerReturnUrl" />
+                <div class="mb-3">
+                  <label class="form-label" for="authRegisterEmail">Email</label>
+                  <div class="auth-field">
+                    <i class="bi bi-envelope"></i>
+                    <input id="authRegisterEmail" name="Email" type="email" class="form-control" placeholder="you@example.com" required />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="authRegisterPassword">Password</label>
+                  <div class="auth-field">
+                    <i class="bi bi-lock"></i>
+                    <input id="authRegisterPassword" name="Password" type="password" class="form-control" minlength="6" placeholder="Minimo 6 caracteres" required />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="authRegisterConfirm">Confirmar password</label>
+                  <div class="auth-field">
+                    <i class="bi bi-shield-check"></i>
+                    <input id="authRegisterConfirm" name="ConfirmPassword" type="password" class="form-control" minlength="6" placeholder="Repete a password" required />
+                  </div>
+                </div>
+                <div class="auth-terms">
+                  Ao criar conta, aceitas os termos e politica de privacidade.
+                </div>
+                <button class="btn btn-primary auth-submit" type="submit">
+                  <i class="bi bi-person-plus"></i>
+                  Criar conta
+                </button>
+                <a class="btn auth-google @(googleConfigured ? "" : "disabled")" href="/auth/google" data-google-auth aria-disabled="@(!googleConfigured)">
+                  <i class="bi bi-google"></i> Continuar com Google
+                </a>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <aside class="auth-aside">
+          <div class="auth-aside-badge">
+            <i class="bi bi-lightning-charge-fill"></i>
+            Campanhas de crescimento
+          </div>
+          <h3>Transforma qualquer ideia de produto num workflow de aquisicao gerido por IA.</h3>
+          <p>Gera calendario de posts, aprova rascunhos por plataforma, prepara emails e mede alcance, interacoes e conversoes.</p>
+
+          <div class="auth-metric-grid">
+            <div>
+              <span>5</span>
+              <small>creditos gratis</small>
+            </div>
+            <div>
+              <span>EUR 49.99</span>
+              <small>ilimitado mensal</small>
+            </div>
+          </div>
+
+          <div class="auth-aside-list">
+            <div><i class="bi bi-check2"></i> URL, empresa ou ideia de negocio</div>
+            <div><i class="bi bi-check2"></i> Calendario IA para TikTok, Instagram, Facebook, LinkedIn, email e SMS</div>
+            <div><i class="bi bi-check2"></i> Plano anual ilimitado por EUR 299</div>
+          </div>
+        </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/Promovert-nav.js" asp-append-version="true"></script>
+<script src="~/js/Promovert-auth.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

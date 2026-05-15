@@ -1,0 +1,175 @@
+@page
+@model Promovert.Pages.App.Alerts.CreateAlertModel
+@{
+    ViewData["Title"] = "Nova campanha";
+}
+
+<div class="alert-form-page">
+    <section class="app-page-hero">
+        <div>
+            <span class="tag mb-3">Campaign builder</span>
+            <h1 class="hero-title fw-bold mb-2">Nova campanha</h1>
+            <p class="lead muted mb-0">Start from an application URL, company or business idea and prepare the next marketing push.</p>
+        </div>
+        <div class="app-page-hero-actions">
+            <a class="btn btn-outline-secondary btn-lg" asp-page="/App/Alerts/Index"><i class="bi bi-arrow-left me-1"></i>Back to campaigns</a>
+        </div>
+    </section>
+
+    <div class="alert-form-grid mt-4">
+        <form method="post" class="surface app-panel alert-form-panel" data-alert-form>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Input.MarketType" class="form-label"></label>
+                    <input asp-for="Input.MarketType" type="hidden" data-symbol-market />
+                    <div class="market-segment" role="radiogroup" aria-label="Source type">
+                        <button class="market-segment-option @(Model.Input.MarketType == MarketType.Crypto ? "active" : "")" type="button" data-market-option="Crypto" aria-pressed="@(Model.Input.MarketType == MarketType.Crypto ? "true" : "false")">
+                            <i class="bi bi-link-45deg"></i>
+                            <span>URL da aplicacao</span>
+                        </button>
+                        <button class="market-segment-option @(Model.Input.MarketType == MarketType.Traditional ? "active" : "")" type="button" data-market-option="Traditional" aria-pressed="@(Model.Input.MarketType == MarketType.Traditional ? "true" : "false")">
+                            <i class="bi bi-building"></i>
+                            <span>Empresa ou ideia</span>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Input.MarketType" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Input.Symbol" class="form-label"></label>
+                    <div class="symbol-input-shell">
+                        <i class="bi bi-search"></i>
+                        <input asp-for="Input.Symbol" class="form-control" placeholder="https://app.example.com, Acme CRM, AI invoicing tool..." autocomplete="off" />
+                    </div>
+                    <div class="form-text">Use the product URL, brand name or short business idea that Promovert should promote.</div>
+                    <span asp-validation-for="Input.Symbol" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Input.RuleType" class="form-label"></label>
+                    <select asp-for="Input.RuleType" class="form-select" asp-items="Model.RuleTypeOptions" data-alert-rule-select></select>
+                    <span asp-validation-for="Input.RuleType" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Input.Timeframe" class="form-label"></label>
+                    <select asp-for="Input.Timeframe" class="form-select" asp-items="Model.TimeframeOptions"></select>
+                    <span asp-validation-for="Input.Timeframe" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <div class="alert-rule-summary" data-alert-rule-summary>
+                        Choose a campaign asset to see the goal and production fields for that channel.
+                    </div>
+                </div>
+
+                <div class="col-12" data-alert-field="threshold">
+                    <label asp-for="Input.Threshold" class="form-label" data-alert-threshold-label></label>
+                    <input asp-for="Input.Threshold" class="form-control" data-alert-threshold-input />
+                    <div class="form-text" data-alert-threshold-help>Reach, clicks, leads or conversions expected from this campaign.</div>
+                    <span asp-validation-for="Input.Threshold" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6" data-alert-field="zone">
+                    <label asp-for="Input.ZonePercent" class="form-label"></label>
+                    <input asp-for="Input.ZonePercent" class="form-control" />
+                    <div class="form-text">Discount, bonus or urgency level to include in the offer.</div>
+                    <span asp-validation-for="Input.ZonePercent" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6" data-alert-field="rsi">
+                    <label asp-for="Input.RsiPeriod" class="form-label"></label>
+                    <input asp-for="Input.RsiPeriod" class="form-control" />
+                    <div class="form-text">Use this to rank audience warmth or ICP priority.</div>
+                    <span asp-validation-for="Input.RsiPeriod" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6" data-alert-field="ema">
+                    <label asp-for="Input.FastEmaPeriod" class="form-label"></label>
+                    <input asp-for="Input.FastEmaPeriod" class="form-control" />
+                    <div class="form-text">Number of creative hooks, captions or video scripts to generate.</div>
+                    <span asp-validation-for="Input.FastEmaPeriod" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6" data-alert-field="ema">
+                    <label asp-for="Input.SlowEmaPeriod" class="form-label"></label>
+                    <input asp-for="Input.SlowEmaPeriod" class="form-control" />
+                    <div class="form-text">Follow-ups depois do primeiro post, email ou SMS.</div>
+                    <span asp-validation-for="Input.SlowEmaPeriod" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Input.CooldownMinutes" class="form-label"></label>
+                    <input asp-for="Input.CooldownMinutes" class="form-control" />
+                    <span asp-validation-for="Input.CooldownMinutes" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Input.Channel" class="form-label"></label>
+                    <select asp-for="Input.Channel" class="form-select">
+                        <option>Email</option>
+                        <option>TikTok</option>
+                        <option>Instagram</option>
+                        <option>Facebook</option>
+                        <option>LinkedIn</option>
+                        <option>SMS</option>
+                        <option>Webhook</option>
+                    </select>
+                    <div class="form-text"><a asp-page="/App/Settings">Configure delivery and outreach channels</a>.</div>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Input.AudienceList" class="form-label"></label>
+                    <textarea asp-for="Input.AudienceList" class="form-control" rows="5" placeholder="ana@example.com&#10;joao@example.com&#10;+351 900 000 000"></textarea>
+                    <div class="form-text">Adiciona um email ou telefone por linha para outreach personalizado por email e SMS.</div>
+                    <span asp-validation-for="Input.AudienceList" class="text-danger"></span>
+                </div>
+            </div>
+
+            <label class="form-check alert-form-check mt-4">
+                <input class="form-check-input" asp-for="Input.IsEnabled" />
+                <span class="form-check-label">Activate campaign immediately</span>
+            </label>
+
+            <div class="alert-form-actions mt-4">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Save campaign</button>
+                <a class="btn btn-outline-secondary" asp-page="/App/Alerts/Index">Cancel</a>
+            </div>
+        </form>
+
+        <aside class="surface app-panel alert-form-aside">
+            <div class="plan-badge mb-3"><i class="bi bi-lightning-charge-fill"></i> Campaign capacity</div>
+            @if (Model.IsUnlimited)
+            {
+                <h2>Unlimited plan active</h2>
+                <p>You can create marketing campaigns without credit limits.</p>
+            }
+            else
+            {
+                <h2>@Model.RemainingSlots platform credit@(Model.RemainingSlots == 1 ? "" : "s") available</h2>
+                <p>Each active campaign on each platform uses 1 credit. You can run <strong>@Model.Capacity</strong> active platform credits and currently use <strong>@Model.ActiveAlerts</strong>.</p>
+                <a class="btn btn-outline-secondary w-100" asp-page="/Pricing">Ver pacotes</a>
+            }
+
+            <div class="alert-form-tip">
+                <strong>Social content</strong>
+                <span>Prepare posts, captions and short-video ideas for TikTok, Instagram, Facebook and LinkedIn.</span>
+            </div>
+            <div class="alert-form-tip">
+                <strong>Direct outreach</strong>
+                <span>Use email and SMS campaigns for personalized messages to potential clients.</span>
+            </div>
+            <div class="alert-form-tip">
+                <strong>Measurement</strong>
+                <span>The dashboard focuses on users reached, users engaged and users converted.</span>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/Promovert-alert-form.js" asp-append-version="true"></script>
+}
