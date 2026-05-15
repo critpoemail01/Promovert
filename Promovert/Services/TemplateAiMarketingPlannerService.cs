@@ -60,22 +60,7 @@ public sealed class TemplateAiMarketingPlannerService : IAiMarketingPlannerServi
                 var conversionRate = isPreferredPlatform ? profile.ConversionRate + 0.006m : profile.ConversionRate;
                 var conversions = Math.Max(0, (int)Math.Round(interactions * conversionRate));
 
-                posts.Add(new MarketingPostSuggestion
-                {
-                    Platform = Clip(profile.Name, 40),
-                    ScheduledForUtc = scheduledAt,
-                    DayNumber = dayIndex,
-                    Title = Clip($"{request.ProductName}: {TitleForAngle(angle)}", 140),
-                    Hook = Clip(HookFor(profile, request, angle), 300),
-                    Caption = Clip(CaptionFor(profile, request, angle), 1600),
-                    CreativeBrief = Clip(CreativeBriefFor(profile, request, angle), 900),
-                    Hashtags = Clip(profile.Hashtags, 300),
-                    CallToAction = Clip(CallToActionFor(request), 180),
-                    Status = "Draft",
-                    EstimatedReach = reach,
-                    EstimatedInteractions = interactions,
-                    EstimatedConversions = conversions
-                });
+                posts.Add(BuildPost(request, profile, angle, scheduledAt, dayIndex, reach, interactions, conversions, variation: 0));
             }
         }
 
@@ -85,6 +70,54 @@ public sealed class TemplateAiMarketingPlannerService : IAiMarketingPlannerServi
         var businessDna = BuildBusinessDna(request);
 
         return new AiMarketingPlanDraft(posts, emails, leads, landingPage, businessDna);
+    }
+
+    public MarketingPostSuggestion RegeneratePost(AiMarketingPlanRequest request, string platform, DateTime scheduledForUtc, int dayNumber, int variation)
+    {
+        var profile = PlatformProfiles.TryGetValue(platform, out var configured)
+            ? configured
+            : new PlatformProfile(platform, "social post", "clear hook, proof, CTA", "#growth #marketing", 1200, 0.045m, 0.008m);
+
+        var learning = request.CompanyLearning?.HasData == true ? request.CompanyLearning : null;
+        var angle = SelectAngle(dayNumber + Math.Max(1, variation), $"{platform}-{variation}", learning);
+        var reach = ScaleReach(profile.BaseReach + (dayNumber * 41) + (variation * 173) + (request.ProductName.Length * 9), request.Location);
+        var preferred = learning?.PreferredPlatforms.Contains(profile.Name, StringComparer.OrdinalIgnoreCase) == true;
+        if (preferred)
+            reach = Math.Max(1, (int)Math.Round(reach * 1.08m));
+
+        var interactions = Math.Max(1, (int)Math.Round(reach * profile.InteractionRate));
+        var conversions = Math.Max(0, (int)Math.Round(interactions * (preferred ? profile.ConversionRate + 0.006m : profile.ConversionRate)));
+
+        return BuildPost(request, profile, angle, scheduledForUtc, dayNumber, reach, interactions, conversions, variation);
+    }
+
+    private static MarketingPostSuggestion BuildPost(
+        AiMarketingPlanRequest request,
+        PlatformProfile profile,
+        string angle,
+        DateTime scheduledAt,
+        int dayNumber,
+        int reach,
+        int interactions,
+        int conversions,
+        int variation)
+    {
+        return new MarketingPostSuggestion
+        {
+            Platform = Clip(profile.Name, 40),
+            ScheduledForUtc = scheduledAt,
+            DayNumber = dayNumber,
+            Title = Clip($"{request.ProductName}: {TitleForAngle(angle)}{VariationSuffix(variation)}", 140),
+            Hook = Clip(HookFor(profile, request, angle, variation), 300),
+            Caption = Clip(CaptionFor(profile, request, angle, variation), 1600),
+            CreativeBrief = Clip(CreativeBriefFor(profile, request, angle, variation), 900),
+            Hashtags = Clip(HashtagsFor(profile, request, variation), 300),
+            CallToAction = Clip(CallToActionFor(request), 180),
+            Status = "Draft",
+            EstimatedReach = reach,
+            EstimatedInteractions = interactions,
+            EstimatedConversions = conversions
+        };
     }
 
     private static IEnumerable<string> OrderPlatforms(IReadOnlyList<string> platforms, CompanyLearningProfile? learning)
@@ -279,62 +312,90 @@ public sealed class TemplateAiMarketingPlannerService : IAiMarketingPlannerServi
     {
         return angle switch
         {
-            "pain point" => "solve the daily friction",
-            "before and after" => "from messy workflow to measurable result",
+            "pain point" => "the pain blocking the decision",
+            "before and after" => "from messy process to measurable result",
             "product demo" => "show the product in action",
-            "customer objection" => "answer the biggest buying doubt",
+            "customer objection" => "answer the biggest objection",
             "founder story" => "why this should exist now",
-            "use case" => "one workflow worth copying",
-            "comparison" => "compare the old way with the new way",
+            "use case" => "a use case to copy",
+            "comparison" => "compare the old method with the new one",
             "quick win" => "one practical result today",
-            "social proof" => "make the outcome believable",
-            _ => "make the offer clear"
+            "social proof" => "make the result credible",
+            _ => "clarify the offer"
         };
     }
 
-    private static string HookFor(PlatformProfile profile, AiMarketingPlanRequest request, string angle)
+    private static string HookFor(PlatformProfile profile, AiMarketingPlanRequest request, string angle, int variation)
     {
         var location = LocationPhrase(request.Location);
+        var opener = (variation % 3) switch
+        {
+            1 => "New approach:",
+            2 => "Try this:",
+            _ => string.Empty
+        };
+
         return profile.Name switch
         {
-            "TikTok" => $"Most {request.TargetAudience}{location} lose time here: {request.ValueProposition}.",
-            "Instagram" => $"A simple way to make {request.CampaignGoal.ToLowerInvariant()} feel less random{location}.",
-            "Facebook" => $"Question for {request.TargetAudience}{location}: what would change if this workflow was automatic?",
-            "LinkedIn" => $"{request.ProductName} turns a common {request.TargetAudience} problem{location} into a measurable workflow.",
-            "X" => $"The underrated growth move: make {request.ValueProposition.ToLowerInvariant()} obvious.",
-            "YouTube Shorts" => $"Watch {request.ProductName} solve this in under 30 seconds.",
-            _ => $"{request.ProductName}: {TitleForAngle(angle)}."
+            "TikTok" => $"{opener} Most {request.TargetAudience}{location} lose time here: {request.ValueProposition}.",
+            "Instagram" => $"{opener} A simple way to make {request.CampaignGoal.ToLowerInvariant()} less random{location}.",
+            "Facebook" => $"{opener} Question for {request.TargetAudience}{location}: what would change if this workflow became automatic?",
+            "LinkedIn" => $"{opener} {request.ProductName} turns a common problem for {request.TargetAudience}{location} into a measurable workflow.",
+            "X" => $"{opener} The underestimated growth move: make {request.ValueProposition.ToLowerInvariant()} obvious.",
+            "YouTube Shorts" => $"{opener} Watch {request.ProductName} solve this in under 30 seconds.",
+            _ => $"{opener} {request.ProductName}: {TitleForAngle(angle)}."
         };
     }
 
-    private static string CaptionFor(PlatformProfile profile, AiMarketingPlanRequest request, string angle)
+    private static string CaptionFor(PlatformProfile profile, AiMarketingPlanRequest request, string angle, int variation)
     {
         var urlLine = string.IsNullOrWhiteSpace(request.ProductUrl) ? "" : $"\n\nTry it: {request.ProductUrl}";
         var locationLine = LocationSentence(request.Location);
         var learningLine = request.CompanyLearning?.HasData == true
-            ? $"\n\nPrevious campaign learning: {request.CompanyLearning.PreferredPostStyle}; primary CTA should be '{request.CompanyLearning.PreferredCta}'."
+            ? $"\n\nPrevious learning: {request.CompanyLearning.PreferredPostStyle}; the main CTA should be '{request.CompanyLearning.PreferredCta}'."
             : string.Empty;
+        var proofLine = variation > 0
+            ? $"\n\nVariation {variation}: open with the pain, show proof or an example, and close with one small action."
+            : string.Empty;
+
         return profile.Name switch
         {
             "LinkedIn" =>
-                $"{request.TargetAudience} do not need more busywork. They need a repeatable way to get {request.CampaignGoal.ToLowerInvariant()}.{locationLine}\n\n{request.ProductName} focuses on {request.ValueProposition}.\n\nThe angle for today: {TitleForAngle(angle)}.{learningLine}{urlLine}",
+                $"{request.TargetAudience} do not need more manual work. They need a repeatable way to reach {request.CampaignGoal.ToLowerInvariant()}.{locationLine}\n\n{request.ProductName} focuses on {request.ValueProposition}.\n\nToday's angle: {TitleForAngle(angle)}.{proofLine}{learningLine}{urlLine}",
             "TikTok" =>
-                $"Hook the problem in the first 2 seconds, show {request.ProductName}, then make the outcome concrete for {request.Location.Summary}: {request.ValueProposition}.{learningLine}{urlLine}",
+                $"Open with the problem in the first 2 seconds, show {request.ProductName}, and make the result concrete for {request.Location.Summary}: {request.ValueProposition}.{proofLine}{learningLine}{urlLine}",
             "Instagram" =>
-                $"Turn this into a {profile.Format}: problem, product moment, result, CTA. {request.ProductName} helps {request.TargetAudience} get {request.CampaignGoal.ToLowerInvariant()} in {request.Location.Summary}.{learningLine}{urlLine}",
+                $"Turn this into a {profile.Format}: problem, product moment, result and CTA. {request.ProductName} helps {request.TargetAudience} generate {request.CampaignGoal.ToLowerInvariant()} in {request.Location.Summary}.{proofLine}{learningLine}{urlLine}",
             "Facebook" =>
-                $"{request.TargetAudience}{LocationPhrase(request.Location)} often know the problem, but delay fixing it. Position {request.ProductName} as the practical next step: {request.ValueProposition}.{learningLine}{urlLine}",
+                $"{request.TargetAudience}{LocationPhrase(request.Location)} often know the problem but delay the solution. Position {request.ProductName} as the practical next step: {request.ValueProposition}.{proofLine}{learningLine}{urlLine}",
             _ =>
-                $"{request.ProductName} helps {request.TargetAudience} in {request.Location.Summary} with {request.ValueProposition}. Focus this post on {TitleForAngle(angle)}.{learningLine}{urlLine}"
+                $"{request.ProductName} helps {request.TargetAudience} in {request.Location.Summary} with {request.ValueProposition}. Focus this post on {TitleForAngle(angle)}.{proofLine}{learningLine}{urlLine}"
         };
     }
 
-    private static string CreativeBriefFor(PlatformProfile profile, AiMarketingPlanRequest request, string angle)
+    private static string CreativeBriefFor(PlatformProfile profile, AiMarketingPlanRequest request, string angle, int variation)
     {
         var learning = request.CompanyLearning?.HasData == true
             ? $" Reuse what converted before: {request.CompanyLearning.RecommendedCampaignBrief}"
             : string.Empty;
-        return $"Format: {profile.Format}. Style: {profile.Style}. Show the product context, the audience problem in {request.Location.Summary}, and one measurable next step. Angle: {TitleForAngle(angle)}. Tone: {request.Tone}.{learning}";
+        var variant = variation > 0 ? $" Variation {variation}: change hook and proof point without changing the campaign offer." : string.Empty;
+        return $"Format: {profile.Format}. Style: {profile.Style}. Show product context, the audience problem in {request.Location.Summary}, and one measurable next step. Angle: {TitleForAngle(angle)}. Tone: {request.Tone}.{variant}{learning}";
+    }
+
+    private static string HashtagsFor(PlatformProfile profile, AiMarketingPlanRequest request, int variation)
+    {
+        if (variation <= 0)
+            return profile.Hashtags;
+
+        var goalTag = request.CampaignGoal
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .FirstOrDefault() ?? "growth";
+        return $"{profile.Hashtags} #{Slugify(goalTag)} #{Slugify(request.ProductName)}";
+    }
+
+    private static string VariationSuffix(int variation)
+    {
+        return variation <= 0 ? string.Empty : $" v{variation}";
     }
 
     private static string CallToActionFor(AiMarketingPlanRequest request)

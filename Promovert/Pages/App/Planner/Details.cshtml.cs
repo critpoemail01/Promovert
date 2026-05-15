@@ -15,6 +15,7 @@ public class DetailsModel : PageModel
     private readonly ApplicationDbContext _db;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IUserAccountService _accounts;
+    private readonly IAiMarketingPlannerService _planner;
     private readonly ICampaignLibraryService _campaignLibrary;
     private readonly IIntegrationAuthorizationService _authorization;
     private readonly ICampaignBusinessAnalyticsService _businessAnalytics;
@@ -24,6 +25,7 @@ public class DetailsModel : PageModel
         ApplicationDbContext db,
         UserManager<IdentityUser> userManager,
         IUserAccountService accounts,
+        IAiMarketingPlannerService planner,
         ICampaignLibraryService campaignLibrary,
         IIntegrationAuthorizationService authorization,
         ICampaignBusinessAnalyticsService businessAnalytics,
@@ -32,6 +34,7 @@ public class DetailsModel : PageModel
         _db = db;
         _userManager = userManager;
         _accounts = accounts;
+        _planner = planner;
         _campaignLibrary = campaignLibrary;
         _authorization = authorization;
         _businessAnalytics = businessAnalytics;
@@ -59,7 +62,7 @@ public class DetailsModel : PageModel
         if (!loaded)
         {
             StatusMessage = "Campaign not found for this account or it was already deleted.";
-            return RedirectToPage("/App/Alerts/Index");
+            return RedirectToPage("/App/Campaigns/Index");
         }
 
         if (EnsureCampaignArtifacts())
@@ -106,6 +109,41 @@ public class DetailsModel : PageModel
         post.ApprovedAtUtc = null;
         Plan.Status = "Review";
         StatusMessage = "Post rejected. It will not be scheduled unless you approve it later.";
+        await _db.SaveChangesAsync();
+
+        return RedirectToPage(null, null, new { id }, "post-review");
+    }
+
+    public async Task<IActionResult> OnPostRegeneratePostAsync(int id, int postId)
+    {
+        var loaded = await LoadPlanAsync(id, tracked: true);
+        if (!loaded) return NotFound();
+
+        var post = Plan.Posts.FirstOrDefault(x => x.Id == postId);
+        if (post is null) return NotFound();
+
+        if (!CanEditDraft(post.Status))
+        {
+            StatusMessage = "This post is already scheduled or published. Duplicate the campaign to create a new variation.";
+            return RedirectToPage(null, null, new { id }, "post-review");
+        }
+
+        var variation = Math.Max(1, (post.Id % 9) + Plan.Posts.Count(x => x.Platform == post.Platform && x.DayNumber == post.DayNumber));
+        var regenerated = _planner.RegeneratePost(BuildPlannerRequest(), post.Platform, post.ScheduledForUtc, post.DayNumber, variation);
+
+        post.Title = regenerated.Title;
+        post.Hook = regenerated.Hook;
+        post.Caption = regenerated.Caption;
+        post.CreativeBrief = regenerated.CreativeBrief;
+        post.Hashtags = regenerated.Hashtags;
+        post.CallToAction = regenerated.CallToAction;
+        post.EstimatedReach = regenerated.EstimatedReach;
+        post.EstimatedInteractions = regenerated.EstimatedInteractions;
+        post.EstimatedConversions = regenerated.EstimatedConversions;
+        ResetApproval(post);
+        Plan.Status = "Review";
+        Plan.UpdatedAtUtc = DateTime.UtcNow;
+        StatusMessage = "Post regenerated as a new draft. Review the variation before approving.";
         await _db.SaveChangesAsync();
 
         return RedirectToPage(null, null, new { id }, "post-review");
@@ -443,7 +481,7 @@ public class DetailsModel : PageModel
         if (plan is null)
         {
             StatusMessage = "Campaign not found or already deleted.";
-            return RedirectToPage("/App/Alerts/Index");
+            return RedirectToPage("/App/Campaigns/Index");
         }
 
         var productName = plan.ProductName;
@@ -451,7 +489,7 @@ public class DetailsModel : PageModel
         await _db.SaveChangesAsync();
 
         StatusMessage = $"Campaign '{productName}' deleted.";
-        return RedirectToPage("/App/Alerts/Index");
+        return RedirectToPage("/App/Campaigns/Index");
     }
 
     private async Task<bool> LoadPlanAsync(int id, bool tracked = false)
@@ -518,6 +556,36 @@ public class DetailsModel : PageModel
         return await _db.UserNotificationSettings
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.UserId == userId);
+    }
+
+    private AiMarketingPlanRequest BuildPlannerRequest()
+    {
+        var platforms = Plan.Platforms
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return new AiMarketingPlanRequest(
+            Plan.ProductName,
+            Plan.ProductUrl,
+            Plan.CompanyOrIdea,
+            Plan.TargetAudience,
+            Plan.ValueProposition,
+            Plan.CampaignGoal,
+            Plan.Tone,
+            platforms,
+            Plan.StartDate,
+            Plan.EndDate,
+            Plan.Frequency,
+            Plan.EmailAudience,
+            new AiAudienceLocation(
+                Plan.AudienceLocationScope,
+                Plan.AudienceCountry,
+                Plan.AudienceCity,
+                Plan.AudienceLatitude,
+                Plan.AudienceLongitude,
+                Plan.AudienceRadiusKm),
+            CompanyLearning);
     }
 
     private IReadOnlyList<PublicationAuthorization> BuildPublicationAuthorizations(MarketingPlan plan, UserNotificationSettings? settings)
@@ -741,12 +809,12 @@ public class DetailsModel : PageModel
         {
             var place = string.Join(", ", new[] { plan.AudienceCity, plan.AudienceCountry }.Where(x => !string.IsNullOrWhiteSpace(x)));
             if (string.IsNullOrWhiteSpace(place))
-                place = "Cidade selecionada";
+                place = "Selected city";
 
             return plan.AudienceRadiusKm is > 0 ? $"{place} + {plan.AudienceRadiusKm} km" : place;
         }
 
-        return "Mundo";
+        return "Worldwide";
     }
 
     private static CampaignBusinessReport EmptyBusinessReport()

@@ -6,15 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace Promovert.Pages.App.Alerts;
+namespace Promovert.Pages.App.Campaigns;
 
 [Authorize]
-public class DeleteAlertModel : PageModel
+public class DeleteCampaignModel : PageModel
 {
     private readonly ApplicationDbContext _db;
     private readonly UserManager<IdentityUser> _userManager;
 
-    public DeleteAlertModel(ApplicationDbContext db, UserManager<IdentityUser> userManager)
+    public DeleteCampaignModel(ApplicationDbContext db, UserManager<IdentityUser> userManager)
     {
         _db = db;
         _userManager = userManager;
@@ -49,6 +49,6 @@ public class DeleteAlertModel : PageModel
         _db.Alerts.Remove(alert);
         await _db.SaveChangesAsync();
 
-        return RedirectToPage("/App/Alerts/Index");
+        return RedirectToPage("/App/Campaigns/Index");
     }
 }

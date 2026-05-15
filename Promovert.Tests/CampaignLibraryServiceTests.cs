@@ -36,7 +36,7 @@ public class CampaignLibraryServiceTests
             "Clinics and healthcare"));
 
         Assert.Contains(recommendations, x => x.Key == "clinics-first-visit");
-        Assert.Contains(recommendations, x => x.Title.Contains("consulta", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(recommendations, x => x.Title.Contains("appointment", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -47,8 +47,8 @@ public class CampaignLibraryServiceTests
         var template = service.Find("construction-quote");
 
         Assert.NotNull(template);
-        Assert.Equal("Construcao e obras", template!.Sector);
-        Assert.Contains("orcamento", template.Goal, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Construction and renovation", template!.Sector);
+        Assert.Contains("quote", template.Goal, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class CampaignLibraryServiceTests
             "gerar leads",
             null));
 
-        Assert.All(recommendations, x => Assert.Equal("Geral / crescimento", x.Sector));
+        Assert.All(recommendations, x => Assert.Equal("General / growth", x.Sector));
         Assert.Contains(recommendations, x => x.Key == "general-lead-capture");
     }
 }

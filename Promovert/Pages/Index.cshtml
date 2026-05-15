@@ -1,17 +1,17 @@
 @page
 @model Promovert.Pages.IndexModel
 @{
-    ViewData["Title"] = "Motor de campanhas online";
+    ViewData["Title"] = "Online campaign engine";
 }
 
 <section class="hero-section">
     <div class="container">
         <div class="promo-strip mb-4">
             <div>
-                <span class="promo-label">Lancamento</span>
-                <span class="promo-copy">Comeca com 5 creditos gratis. O plano ilimitado custa EUR 49.99/mes ou EUR 299/ano quando o marketing passa a ser continuo.</span>
+                <span class="promo-label">Launch</span>
+                <span class="promo-copy">Start with 5 free credits. The unlimited plan is EUR 49.99/month or EUR 299/year when marketing becomes continuous.</span>
             </div>
-            <a class="promo-link" asp-page="/Pricing">Ver precos <i class="bi bi-arrow-right-short"></i></a>
+            <a class="promo-link" asp-page="/Pricing">View pricing <i class="bi bi-arrow-right-short"></i></a>
         </div>
 
         <div class="surface hero-card p-4 p-md-5">
@@ -19,43 +19,43 @@
                 <div class="col-lg-7">
                     <div class="hero-kicker mb-3">
                         <i class="bi bi-megaphone-fill"></i>
-                        <span>Campanhas completas geradas a partir de um URL</span>
+                        <span>Complete campaigns generated from one URL</span>
                     </div>
 
-                    <h1 class="display-5 fw-bold hero-title mb-3">Promovert transforma o website da empresa numa campanha completa.</h1>
+                    <h1 class="display-5 fw-bold hero-title mb-3">Promovert turns a company website into a complete campaign.</h1>
                     <p class="lead mb-4 muted">
-                        Insere o URL, valida o Business DNA, escolhe uma campanha sugerida e aprova os posts, emails e landing page antes de publicar.
+                        Enter the URL, validate the Business DNA, choose a suggested campaign and approve the posts, emails and landing page before publishing.
                     </p>
 
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-primary btn-lg" data-auth-open="register">
-                            Comecar gratis
+                            Start free
                         </button>
-                        <a class="btn btn-outline-secondary btn-lg" asp-page="/HowItWorks">Como funciona</a>
+                        <a class="btn btn-outline-secondary btn-lg" asp-page="/HowItWorks">How it works</a>
                         @if (User?.Identity?.IsAuthenticated == true)
                         {
-                            <a class="btn btn-outline-secondary btn-lg" asp-page="/App/Dashboard">Abrir dashboard</a>
+                            <a class="btn btn-outline-secondary btn-lg" asp-page="/App/Dashboard">Open dashboard</a>
                         }
                     </div>
 
                     <div class="micro-proof-row">
-                        <span><i class="bi bi-check2"></i> Business DNA a partir do URL</span>
-                        <span><i class="bi bi-check2"></i> Posts, emails e landing page</span>
-                        <span><i class="bi bi-check2"></i> Alcance, interacoes e conversoes</span>
+                        <span><i class="bi bi-check2"></i> Business DNA from the URL</span>
+                        <span><i class="bi bi-check2"></i> Posts, emails and landing page</span>
+                        <span><i class="bi bi-check2"></i> Reach, interactions and conversions</span>
                     </div>
 
                     <div class="hero-proof mt-4">
                         <div>
                             <strong>3</strong>
-                            <span>metricas principais</span>
+                            <span>core metrics</span>
                         </div>
                         <div>
                             <strong>6</strong>
-                            <span>canais de marketing</span>
+                            <span>marketing channels</span>
                         </div>
                         <div>
                             <strong>EUR 299</strong>
-                            <span>ilimitado/ano</span>
+                            <span>unlimited/year</span>
                         </div>
                     </div>
                 </div>
@@ -63,33 +63,33 @@
                 <div class="col-lg-5">
                     <div class="market-panel">
                         <div class="market-panel-header">
-                            <span class="badge badge-soft">Campanha completa</span>
+                            <span class="badge badge-soft">Complete campaign</span>
                             <span class="market-dot"></span>
                         </div>
                         <div class="market-card active">
                             <div>
-                                <div class="fw-semibold">https://empresa.pt</div>
-                                <div class="small muted">Business DNA + campanha de 14 dias</div>
+                                <div class="fw-semibold">https://company.pt</div>
+                                <div class="small muted">Business DNA + 14-day campaign</div>
                             </div>
-                            <span class="signal signal-buy">A gerar</span>
+                            <span class="signal signal-buy">Generating</span>
                         </div>
                         <div class="market-card">
                             <div>
-                                <div class="fw-semibold">Posts por canal</div>
+                                <div class="fw-semibold">Posts by channel</div>
                                 <div class="small muted">LinkedIn, Instagram, Facebook, TikTok</div>
                             </div>
-                            <span class="signal">Rascunho</span>
+                            <span class="signal">Draft</span>
                         </div>
                         <div class="market-card">
                             <div>
                                 <div class="fw-semibold">Emails + landing page</div>
-                                <div class="small muted">Follow-up, formulario e UTM</div>
+                                <div class="small muted">Follow-up, form and UTM</div>
                             </div>
-                            <span class="signal">Aprovar</span>
+                            <span class="signal">Approve</span>
                         </div>
                         <div class="market-panel-footer">
                             <i class="bi bi-graph-up-arrow"></i>
-                            <span>Alcancados, interagiram, converteram. Um dashboard.</span>
+                            <span>Reached, interacted, converted. One dashboard.</span>
                         </div>
                     </div>
                 </div>
@@ -98,9 +98,9 @@
 
         <section class="mt-5">
             <div class="section-header">
-                <span class="section-eyebrow"><i class="bi bi-stars"></i> Campanha como unidade principal</span>
-                <h2 class="section-title">Estrategia, conteudo, captacao e relatorio no mesmo fluxo.</h2>
-                <p class="section-copy">A Promovert foca-se em tres resultados: utilizadores alcancados, utilizadores que interagiram e utilizadores que subscreveram ou compraram.</p>
+                <span class="section-eyebrow"><i class="bi bi-stars"></i> Campaign as the main unit</span>
+                <h2 class="section-title">Strategy, content, lead capture and reporting in one workflow.</h2>
+                <p class="section-copy">Promovert focuses on three outcomes: users reached, users who interacted and users who subscribed or bought.</p>
             </div>
 
             <div class="row g-4">
@@ -108,21 +108,21 @@
                     <div class="surface feature-card h-100">
                         <div class="icon-pill mb-3"><i class="bi bi-fingerprint"></i></div>
                         <h5>Business DNA</h5>
-                        <p class="mb-0 muted">Analisa o URL e cria o perfil comercial: produto, publico, oferta, tom, setor e oportunidades de campanha.</p>
+                        <p class="mb-0 muted">Analyzes the URL and creates the commercial profile: product, audience, offer, tone, sector and campaign opportunities.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="surface feature-card h-100">
                         <div class="icon-pill mb-3"><i class="bi bi-calendar2-week"></i></div>
-                        <h5>Calendario de posts</h5>
-                        <p class="mb-0 muted">Gera hooks, captions, scripts curtos e variacoes por canal para o periodo escolhido.</p>
+                        <h5>Post calendar</h5>
+                        <p class="mb-0 muted">Generates hooks, captions, short scripts and channel variations for the selected period.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="surface feature-card h-100">
                         <div class="icon-pill mb-3"><i class="bi bi-window-stack"></i></div>
-                        <h5>Landing page e leads</h5>
-                        <p class="mb-0 muted">Cria uma pagina de conversao com formulario, UTM, tracking e origem da campanha.</p>
+                        <h5>Landing page and leads</h5>
+                        <p class="mb-0 muted">Creates a conversion page with form, UTM, tracking and campaign source.</p>
                     </div>
                 </div>
             </div>
@@ -130,13 +130,13 @@
 
         <div class="conversion-band mt-4">
             <div>
-                <span class="tag mb-2">Melhor proximo passo</span>
-                <h2 class="fw-bold mb-2">Adiciona um URL e gera a primeira campanha.</h2>
-                <p class="mb-0 muted">Cada credito cobre uma campanha ativa numa plataforma durante 30 dias. O plano ilimitado cobre todos os canais sem contar creditos.</p>
+                <span class="tag mb-2">Best next step</span>
+                <h2 class="fw-bold mb-2">Add a URL and generate your first campaign.</h2>
+                <p class="mb-0 muted">Each credit covers one active campaign on one platform for 30 days. The unlimited plan covers every channel without counting credits.</p>
             </div>
             <div class="conversion-actions">
-                <button type="button" class="btn btn-primary btn-lg" data-auth-open="register">Comecar gratis</button>
-                <a class="btn btn-outline-secondary btn-lg" asp-page="/Pricing">Ver precos</a>
+                <button type="button" class="btn btn-primary btn-lg" data-auth-open="register">Start free</button>
+                <a class="btn btn-outline-secondary btn-lg" asp-page="/Pricing">View pricing</a>
             </div>
         </div>
     </div>

@@ -7,16 +7,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace Promovert.Pages.App.Alerts;
+namespace Promovert.Pages.App.Campaigns;
 
 [Authorize]
-public class AlertsIndexModel : PageModel
+public class CampaignsIndexModel : PageModel
 {
     private readonly ApplicationDbContext _db;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IUserAccountService _accounts;
 
-    public AlertsIndexModel(ApplicationDbContext db, UserManager<IdentityUser> userManager, IUserAccountService accounts)
+    public CampaignsIndexModel(ApplicationDbContext db, UserManager<IdentityUser> userManager, IUserAccountService accounts)
     {
         _db = db;
         _userManager = userManager;

@@ -1,17 +1,17 @@
 @page
 @model Promovert.Pages.App.SettingsModel
 @{
-    ViewData["Title"] = "Canais de marketing";
+    ViewData["Title"] = "Marketing channels";
 }
 
 <div class="account-page">
     <div class="account-heading">
         <div>
-            <span class="tag mb-2">Conta e definicoes</span>
-            <h1 class="fw-bold mb-0">Canais de marketing</h1>
-            <p class="muted mb-0">Escolhe onde a Promovert prepara, agenda e envia atividade de campanha.</p>
+            <span class="tag mb-2">Account & settings</span>
+            <h1 class="fw-bold mb-0">Marketing channels</h1>
+            <p class="muted mb-0">Choose where Promovert prepares, schedules and sends campaign activity.</p>
         </div>
-        <a class="btn btn-outline-secondary" asp-page="/App/Alerts/Index">Voltar a campanhas</a>
+        <a class="btn btn-outline-secondary" asp-page="/App/Campaigns/Index">Back to campaigns</a>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
@@ -23,14 +23,52 @@
         <div asp-validation-summary="ModelOnly" class="text-danger mt-3"></div>
 
         <section class="account-section mt-4">
-            <div class="account-section-title">Integracoes oficiais de publicacao</div>
+            <div class="account-section-title">Official publishing integrations</div>
             <div class="official-integration-intro">
                 <div>
-                    <span class="tag">Publicacao autorizada</span>
-                    <h2>Publicar apenas atraves de ligacoes OAuth oficiais</h2>
-                    <p>A Promovert so marca conteudo social como publicado quando a conta, pagina ou fornecedor esta autorizado. LinkedIn, Instagram e Facebook exigem permissoes oficiais; redes sem integracao ficam como brief criativo ate existir fornecedor ligado.</p>
+                    <span class="tag">Authorized publishing</span>
+                    <h2>Publish only through official OAuth connections</h2>
+                    <p>Promovert only marks social content as published when the account, page or provider is authorized. LinkedIn, Instagram and Facebook require official permissions; networks without integration stay as creative briefs until a provider is connected.</p>
                 </div>
-                <a class="btn btn-outline-secondary" asp-page="/App/Alerts/Index"><i class="bi bi-calendar-check me-1"></i>Rever campanhas</a>
+                <a class="btn btn-outline-secondary" asp-page="/App/Campaigns/Index"><i class="bi bi-calendar-check me-1"></i>Review campaigns</a>
+            </div>
+
+            <div class="integration-mvp-stack">
+                <article>
+                    <span><i class="bi bi-linkedin"></i></span>
+                    <div>
+                        <strong>LinkedIn</strong>
+                        <small>@(Model.Input.LinkedInAuthorized ? "Company Page authorized" : "OAuth not connected")</small>
+                    </div>
+                </article>
+                <article>
+                    <span><i class="bi bi-instagram"></i></span>
+                    <div>
+                        <strong>Instagram/Facebook</strong>
+                        <small>@(Model.Input.InstagramAuthorized || Model.Input.FacebookAuthorized ? "Meta partially connected" : "Meta OAuth not connected")</small>
+                    </div>
+                </article>
+                <article>
+                    <span><i class="bi bi-envelope-check"></i></span>
+                    <div>
+                        <strong>Email</strong>
+                        <small>@(Model.EmailTransportConfigured ? "Provider verified" : "Brevo/Mailchimp/SendGrid not connected")</small>
+                    </div>
+                </article>
+                <article>
+                    <span><i class="bi bi-window-stack"></i></span>
+                    <div>
+                        <strong>Landing pages</strong>
+                        <small>Published inside Promovert after approval</small>
+                    </div>
+                </article>
+                <article>
+                    <span><i class="bi bi-graph-up-arrow"></i></span>
+                    <div>
+                        <strong>Analytics/UTM</strong>
+                        <small>@(!string.IsNullOrWhiteSpace(Model.Input.GoogleAnalyticsMeasurementId) || !string.IsNullOrWhiteSpace(Model.Input.MetaPixelId) ? "Tracking configured" : "UTM active, GA4/Pixel optional")</small>
+                    </div>
+                </article>
             </div>
 
             <div class="official-integration-grid">
@@ -255,7 +293,7 @@
                     <h2>Prepare outreach where customers already react</h2>
                     <p>Email and SMS cover direct outreach, social channels cover distribution, and webhooks connect campaigns to CRMs or automation workflows.</p>
                 </div>
-                <a class="btn btn-primary app-new-alert-action" asp-page="/App/Planner/Index" asp-fragment="campaign-config"><i class="bi bi-plus-lg me-1"></i> Nova campanha</a>
+                <a class="btn btn-primary app-new-alert-action" asp-page="/App/Planner/Index" asp-fragment="campaign-config"><i class="bi bi-plus-lg me-1"></i> New campaign</a>
             </div>
 
             <div class="notification-channel-grid">

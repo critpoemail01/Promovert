@@ -9,19 +9,19 @@ public sealed class NewsModel : PageModel
     public List<Post> Posts { get; } = new()
     {
         new Post(
-            "Pacotes de creditos para lancamentos de campanha",
-            "Produto",
-            "Compra pacotes de creditos e continua a correr campanhas sem subscricao mensal.",
+            "Credit packs for campaign launches",
+            "Product",
+            "Buy credit packs and keep running campaigns without a monthly subscription.",
             DateTime.UtcNow.AddDays(-7)),
         new Post(
-            "Controlo de campanha: cadencia e janelas de entrega",
-            "Produto",
-            "Melhoramos o agendamento para manter outreach dentro da janela de entrega escolhida.",
+            "Campaign control: cadence and delivery windows",
+            "Product",
+            "Scheduling was improved to keep outreach inside the selected delivery window.",
             DateTime.UtcNow.AddDays(-14)),
         new Post(
-            "Roadmap: publicacao social e envio SMS",
+            "Roadmap: social publishing and SMS sending",
             "Roadmap",
-            "Novos canais estao a caminho. O mesmo workflow de campanha, com mais sitios para distribuir.",
+            "New channels are on the way. The same campaign workflow, with more places to distribute.",
             DateTime.UtcNow.AddDays(-30)),
     };
 

@@ -5,6 +5,7 @@ namespace Promovert.Services;
 public interface IAiMarketingPlannerService
 {
     AiMarketingPlanDraft Generate(AiMarketingPlanRequest request);
+    MarketingPostSuggestion RegeneratePost(AiMarketingPlanRequest request, string platform, DateTime scheduledForUtc, int dayNumber, int variation);
 }
 
 public sealed record AiMarketingPlanRequest(

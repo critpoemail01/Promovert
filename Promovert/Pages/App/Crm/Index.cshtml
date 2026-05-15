@@ -1,17 +1,17 @@
 @page
 @model Promovert.Pages.App.Crm.IndexModel
 @{
-    ViewData["Title"] = "Importar leads CSV";
+    ViewData["Title"] = "Import CSV leads";
 }
 
 <section class="app-page-hero">
     <div>
-        <span class="tag mb-3">Importacao CSV</span>
-        <h1 class="hero-title fw-bold mb-2">Usa as leads da tua equipa de prospecao nas campanhas.</h1>
-        <p class="lead muted mb-0">Por agora, importa leads selecionando um ficheiro CSV. Depois escolhes esses contactos no campaign builder.</p>
+        <span class="tag mb-3">CSV import</span>
+        <h1 class="hero-title fw-bold mb-2">Use your prospecting team leads in campaigns.</h1>
+        <p class="lead muted mb-0">For now, import leads by selecting a CSV file. Then choose those contacts in the campaign builder.</p>
     </div>
     <div class="app-page-hero-actions">
-        <a class="btn btn-primary btn-lg" asp-page="/App/Planner/Index" asp-fragment="campaign-config"><i class="bi bi-plus-lg me-1"></i>Nova campanha</a>
+        <a class="btn btn-primary btn-lg" asp-page="/App/Planner/Index" asp-fragment="campaign-config"><i class="bi bi-plus-lg me-1"></i>New campaign</a>
     </div>
 </section>
 
@@ -24,35 +24,35 @@
     <div class="surface app-stat-card">
         <span class="app-stat-icon"><i class="bi bi-people"></i></span>
         <div>
-            <div class="app-stat-label">Leads CRM</div>
+            <div class="app-stat-label">CRM leads</div>
             <div class="app-stat-value">@Model.TotalLeads</div>
         </div>
     </div>
     <div class="surface app-stat-card">
         <span class="app-stat-icon"><i class="bi bi-envelope-check"></i></span>
         <div>
-            <div class="app-stat-label">Com email</div>
+            <div class="app-stat-label">With email</div>
             <div class="app-stat-value">@Model.LeadsWithEmail</div>
         </div>
     </div>
     <div class="surface app-stat-card">
         <span class="app-stat-icon"><i class="bi bi-bullseye"></i></span>
         <div>
-            <div class="app-stat-label">Prontas para campanha</div>
+            <div class="app-stat-label">Ready for campaign</div>
             <div class="app-stat-value">@Model.ReadyForCampaign</div>
         </div>
     </div>
     <div class="surface app-stat-card">
         <span class="app-stat-icon"><i class="bi bi-shield-check"></i></span>
         <div>
-            <div class="app-stat-label">Com consentimento</div>
+            <div class="app-stat-label">With consent</div>
             <div class="app-stat-value">@Model.AuthorizedContacts</div>
         </div>
     </div>
     <div class="surface app-stat-card">
         <span class="app-stat-icon"><i class="bi bi-shield-x"></i></span>
         <div>
-            <div class="app-stat-label">Excluidas</div>
+            <div class="app-stat-label">Excluded</div>
             <div class="app-stat-value">@Model.SuppressedContacts</div>
         </div>
     </div>
@@ -61,8 +61,8 @@
 <section class="surface app-panel mt-4 crm-csv-import-panel">
     <div class="app-panel-header">
         <div>
-            <h2>Importar leads por CSV</h2>
-            <p>Seleciona um CSV do CRM ou lista de prospecao. A Promovert le as colunas, sugere o match e pede confirmacao antes de importar.</p>
+            <h2>Import leads by CSV</h2>
+            <p>Select a CSV from your CRM or prospecting list. Promovert reads the columns, suggests the match and asks for confirmation before import.</p>
         </div>
     </div>
 
@@ -71,12 +71,12 @@
             <div class="col-12">
                 <label asp-for="Import.CsvFile" class="form-label"></label>
                 <input asp-for="Import.CsvFile" class="form-control" type="file" accept=".csv,text/csv" data-csv-file-input />
-                <div class="form-text">A origem das leads fica automaticamente com o nome do ficheiro. O consentimento e exclusoes podem ser geridos depois.</div>
+                <div class="form-text">The lead source automatically uses the file name. Consent and exclusions can be managed later.</div>
                 <span asp-validation-for="Import.CsvFile" class="text-danger"></span>
             </div>
         </div>
 
-        <button class="btn btn-outline-secondary mt-3" type="submit"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Ler colunas do CSV</button>
+        <button class="btn btn-outline-secondary mt-3" type="submit"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Read CSV columns</button>
     </form>
 
     @if (Model.CsvPreview is not null && Model.CsvPreview.Columns.Any())
@@ -87,18 +87,18 @@
 
             <div class="crm-csv-preview-summary">
                 <div>
-                    <strong>@Model.CsvPreview.Columns.Count colunas detetadas</strong>
-                    <span>Origem: @Model.Import.Source</span>
-                    <span>@Model.CsvPreview.SampleRows.Count linha@(Model.CsvPreview.SampleRows.Count == 1 ? "" : "s") de preview - delimitador '@Model.CsvPreview.Delimiter'</span>
+                    <strong>@Model.CsvPreview.Columns.Count columns detected</strong>
+                    <span>Source: @Model.Import.Source</span>
+                    <span>@Model.CsvPreview.SampleRows.Count preview row@(Model.CsvPreview.SampleRows.Count == 1 ? "" : "s") - delimiter '@Model.CsvPreview.Delimiter'</span>
                 </div>
-                <span>@(Model.CsvPreview.HasHeader ? "Cabecalho detetado" : "Sem cabecalho detetado")</span>
+                <span>@(Model.CsvPreview.HasHeader ? "Header detected" : "No header detected")</span>
             </div>
 
             <div class="crm-column-map-grid mt-3">
                 <label>
-                    <span class="form-label">Email <small>obrigatorio</small></span>
+                    <span class="form-label">Email <small>required</small></span>
                     <select asp-for="Import.EmailColumn" class="form-select">
-                        <option value="">Selecionar coluna CSV</option>
+                        <option value="">Select CSV column</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -107,9 +107,9 @@
                     <span asp-validation-for="Import.EmailColumn" class="text-danger"></span>
                 </label>
                 <label>
-                    <span class="form-label">Nome do contacto</span>
+                    <span class="form-label">Contact name</span>
                     <select asp-for="Import.ContactNameColumn" class="form-select">
-                        <option value="">Usar email como nome</option>
+                        <option value="">Use email as name</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -117,9 +117,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">Empresa</span>
+                    <span class="form-label">Company</span>
                     <select asp-for="Import.CompanyNameColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -127,9 +127,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">Cargo</span>
+                    <span class="form-label">Role</span>
                     <select asp-for="Import.RoleColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -137,9 +137,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">Setor</span>
+                    <span class="form-label">Industry</span>
                     <select asp-for="Import.IndustryColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -147,9 +147,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">Pais</span>
+                    <span class="form-label">Country</span>
                     <select asp-for="Import.CountryColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -157,9 +157,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">Cidade</span>
+                    <span class="form-label">City</span>
                     <select asp-for="Import.CityColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -167,9 +167,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">Estado</span>
+                    <span class="form-label">Status</span>
                     <select asp-for="Import.StageColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -179,7 +179,7 @@
                 <label>
                     <span class="form-label">Tags</span>
                     <select asp-for="Import.TagsColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -187,9 +187,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">Telefone</span>
+                    <span class="form-label">Phone</span>
                     <select asp-for="Import.PhoneColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -197,9 +197,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">ID externo</span>
+                    <span class="form-label">External ID</span>
                     <select asp-for="Import.ExternalIdColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -207,9 +207,9 @@
                     </select>
                 </label>
                 <label>
-                    <span class="form-label">Notas</span>
+                    <span class="form-label">Notes</span>
                     <select asp-for="Import.NotesColumn" class="form-select">
-                        <option value="">Nao importar</option>
+                        <option value="">Do not import</option>
                         @foreach (var column in Model.CsvPreview.Columns)
                         {
                             <option value="@column.Index">@column.Label</option>
@@ -243,8 +243,8 @@
             </div>
 
             <div class="alert-form-actions mt-4">
-                <button class="btn btn-primary" type="submit"><i class="bi bi-cloud-arrow-up me-1"></i>Importar leads mapeadas</button>
-                <span class="muted">A importacao CSV e o unico modo por agora. Contactos com unsubscribe ou excluidos nao entram em campanhas de email.</span>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-cloud-arrow-up me-1"></i>Import mapped leads</button>
+                <span class="muted">CSV import is the only import mode for now. Unsubscribed or excluded contacts are not used in email campaigns.</span>
             </div>
         </form>
     }
@@ -253,25 +253,25 @@
 <section class="surface app-panel mt-4">
     <div class="app-panel-header">
         <div>
-            <h2>Consentimento e Email Hub</h2>
-            <p>Gere contactos autorizados, unsubscribe e listas de exclusao antes de usar emails CRM em campanhas.</p>
+            <h2>Consent & Email Hub</h2>
+            <p>Manage authorized contacts, unsubscribe and exclusion lists before using CRM emails in campaigns.</p>
         </div>
     </div>
     <div class="consent-hub-grid">
         <article>
             <span><i class="bi bi-envelope-check"></i></span>
-            <strong>Permitidos para outreach</strong>
-            <p>Contactos desconhecidos ou consentidos podem ser selecionados para revisao. Contactos consentidos devem ter origem explicita.</p>
+            <strong>Allowed for outreach</strong>
+            <p>Unknown or consented contacts can be selected for review. Consented contacts should have an explicit source.</p>
         </article>
         <article>
             <span><i class="bi bi-person-x"></i></span>
-            <strong>Lista de exclusao</strong>
-            <p>Contactos com unsubscribe ou suprimidos ficam bloqueados para campanhas e visiveis para auditoria.</p>
+            <strong>Exclusion list</strong>
+            <p>Unsubscribed or suppressed contacts are blocked from campaigns and visible for audit.</p>
         </article>
         <article>
             <span><i class="bi bi-window-stack"></i></span>
-            <strong>Captacao pela landing page</strong>
-            <p>Formularios publicos captam consentimento e devolvem leads ao CRM com origem de campanha e canal.</p>
+            <strong>Landing page capture</strong>
+            <p>Public forms capture consent and return leads to CRM with campaign and channel source.</p>
         </article>
     </div>
 </section>
@@ -279,8 +279,8 @@
 <section class="surface app-panel mt-4">
     <div class="app-panel-header">
         <div>
-            <h2>Leads CRM importadas</h2>
-            <p>Estes contactos passam a estar disponiveis como publico selecionavel no campaign builder.</p>
+            <h2>Imported CRM leads</h2>
+            <p>These contacts become available as selectable audiences in the campaign builder.</p>
         </div>
     </div>
 
@@ -288,7 +288,7 @@
     {
         <div class="empty-state compact">
             <i class="bi bi-person-lines-fill"></i>
-            <span>Ainda nao existem leads CRM importadas.</span>
+            <span>No imported CRM leads yet.</span>
         </div>
     }
     else
@@ -297,14 +297,14 @@
             <table class="table table-sm align-middle">
                 <thead>
                     <tr>
-                        <th>Contacto</th>
-                        <th>Empresa</th>
-                        <th>Segmento</th>
-                        <th>Localizacao</th>
+                        <th>Contact</th>
+                        <th>Company</th>
+                        <th>Segment</th>
+                        <th>Location</th>
                         <th>Stage</th>
-                        <th>Consentimento</th>
-                        <th>Origem</th>
-                        <th class="text-end">Acao</th>
+                        <th>Consent</th>
+                        <th>Source</th>
+                        <th class="text-end">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -333,7 +333,7 @@
                                         <option value="@status" selected="@(lead.ConsentStatus == status)">@status</option>
                                     }
                                 </select>
-                                <button class="btn btn-sm btn-outline-secondary" type="submit">Guardar</button>
+                                <button class="btn btn-sm btn-outline-secondary" type="submit">Save</button>
                             </form>
                             <div class="text-muted small">@lead.ConsentSource</div>
                         </td>
@@ -343,7 +343,7 @@
                         </td>
                         <td class="text-end">
                             <form method="post" asp-page-handler="DeleteLead" asp-route-leadId="@lead.Id">
-                                <button class="btn btn-sm btn-outline-secondary" type="submit">Remover</button>
+                                <button class="btn btn-sm btn-outline-secondary" type="submit">Remove</button>
                             </form>
                         </td>
                     </tr>
@@ -357,8 +357,8 @@
 <section class="surface app-panel mt-4">
     <div class="app-panel-header">
         <div>
-            <h2>Leads captadas por campanha</h2>
-            <p>Leads das landing pages ficam guardadas com campanha, consentimento do formulario e origem UTM/canal.</p>
+            <h2>Captured leads by campaign</h2>
+            <p>Landing page leads are stored with campaign, form consent and UTM/channel source.</p>
         </div>
     </div>
 
@@ -366,7 +366,7 @@
     {
         <div class="empty-state compact">
             <i class="bi bi-person-plus"></i>
-            <span>Ainda nao existem leads captadas por landing page.</span>
+            <span>No leads captured by landing pages yet.</span>
         </div>
     }
     else
@@ -376,10 +376,10 @@
                 <thead>
                     <tr>
                         <th>Lead</th>
-                        <th>Campanha</th>
+                        <th>Campaign</th>
                         <th>Origin</th>
-                        <th>Consentimento</th>
-                        <th>Captada em</th>
+                        <th>Consent</th>
+                        <th>Captured at</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -389,7 +389,7 @@
                         <td><strong>@lead.ContactName</strong><div class="text-muted">@lead.Email</div></td>
                         <td><strong>@lead.Campaign</strong><div class="text-muted">/@lead.LandingSlug</div></td>
                         <td><strong>@lead.Source</strong><div class="text-muted">@lead.CompanyName @lead.Role</div></td>
-                        <td><span class="badge @(lead.ConsentAccepted ? "text-bg-success" : "text-bg-warning")">@(lead.ConsentAccepted ? "Aceite" : "Em falta")</span></td>
+                        <td><span class="badge @(lead.ConsentAccepted ? "text-bg-success" : "text-bg-warning")">@(lead.ConsentAccepted ? "Accepted" : "Missing")</span></td>
                         <td class="text-muted">@lead.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                     </tr>
                 }

@@ -140,7 +140,19 @@ app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/App/Alerts", static (HttpContext context) => RedirectLegacyCampaignRoute(context, "/App/Campaigns"));
+app.MapGet("/App/Alerts/Index", static (HttpContext context) => RedirectLegacyCampaignRoute(context, "/App/Campaigns"));
+app.MapGet("/App/Alerts/Create", static (HttpContext context) => RedirectLegacyCampaignRoute(context, "/App/Campaigns/Create"));
+app.MapGet("/App/Alerts/Edit", static (HttpContext context) => RedirectLegacyCampaignRoute(context, "/App/Campaigns/Edit"));
+app.MapGet("/App/Alerts/Delete", static (HttpContext context) => RedirectLegacyCampaignRoute(context, "/App/Campaigns/Delete"));
 app.MapControllers();
 app.MapRazorPages();
 
 app.Run();
+
+static Task RedirectLegacyCampaignRoute(HttpContext context, string targetPath)
+{
+    var query = context.Request.QueryString.HasValue ? context.Request.QueryString.Value : string.Empty;
+    context.Response.Redirect($"{targetPath}{query}", permanent: false);
+    return Task.CompletedTask;
+}

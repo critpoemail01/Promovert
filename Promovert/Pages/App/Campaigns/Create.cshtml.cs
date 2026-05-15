@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace Promovert.Pages.App.Alerts;
+namespace Promovert.Pages.App.Campaigns;
 
 [Authorize]
-public class CreateAlertModel : PageModel
+public class CreateCampaignModel : PageModel
 {
 
     private static readonly HashSet<string> SupportedChannels = new(StringComparer.OrdinalIgnoreCase)
@@ -31,7 +31,7 @@ public class CreateAlertModel : PageModel
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IUserAccountService _accounts;
 
-    public CreateAlertModel(ApplicationDbContext db, UserManager<IdentityUser> userManager, IUserAccountService accounts)
+    public CreateCampaignModel(ApplicationDbContext db, UserManager<IdentityUser> userManager, IUserAccountService accounts)
     {
         _db = db;
         _userManager = userManager;
@@ -214,7 +214,7 @@ public class CreateAlertModel : PageModel
 
         await _db.SaveChangesAsync();
 
-        return RedirectToPage("/App/Alerts/Index");
+        return RedirectToPage("/App/Campaigns/Index");
     }
 
     private void LoadSelectLists()
