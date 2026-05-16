@@ -82,6 +82,24 @@ public class CampaignsIndexModel : PageModel
         return RedirectToPage();
     }
 
+    public async Task<IActionResult> OnPostDeletePlanAsync(int id)
+    {
+        var userId = _userManager.GetUserId(User) ?? string.Empty;
+        var plan = await _db.MarketingPlans.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+        if (plan is null)
+        {
+            StatusMessage = "Campaign not found or already deleted.";
+            return RedirectToPage();
+        }
+
+        var productName = plan.ProductName;
+        _db.MarketingPlans.Remove(plan);
+        await _db.SaveChangesAsync();
+
+        StatusMessage = $"Campaign '{productName}' deleted.";
+        return RedirectToPage();
+    }
+
     public async Task<IActionResult> OnPostToggleGroupAsync(MarketType marketType, string symbol)
     {
         var userId = _userManager.GetUserId(User) ?? string.Empty;

@@ -98,7 +98,18 @@
                                 }
                             </td>
                             <td class="text-end">
-                                <a class="btn btn-sm btn-outline-secondary" asp-page="/App/Planner/Details" asp-route-id="@campaign.Id">Open</a>
+                                <div class="alerts-row-actions justify-content-end">
+                                    <a class="btn btn-sm btn-outline-secondary" asp-page="/App/Planner/Details" asp-route-id="@campaign.Id">Open</a>
+                                    <button class="btn btn-sm btn-outline-danger" type="button"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteLegacyCampaignModal"
+                                            data-delete-handler="DeletePlan"
+                                            data-delete-kind="generated campaign"
+                                            data-delete-title="@campaign.ProductName"
+                                            data-delete-id="@campaign.Id">
+                                        Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -313,7 +324,7 @@
             <div class="modal-header border-0">
                 <div>
                     <span class="tag">Delete campaign</span>
-                    <h2 class="modal-title h3 mt-2 mb-0" id="deleteLegacyCampaignModalLabel">Confirmar eliminacao</h2>
+                    <h2 class="modal-title h3 mt-2 mb-0" id="deleteLegacyCampaignModalLabel">Confirm delete</h2>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -326,8 +337,8 @@
                     </div>
                 </div>
                 <dl class="campaign-delete-summary">
-                    <div><dt>Tipo</dt><dd data-delete-legacy-kind>campaign</dd></div>
-                    <div><dt>Nome</dt><dd data-delete-legacy-title>Campaign</dd></div>
+                    <div><dt>Type</dt><dd data-delete-legacy-kind>campaign</dd></div>
+                    <div><dt>Name</dt><dd data-delete-legacy-title>Campaign</dd></div>
                 </dl>
             </div>
             <div class="modal-footer border-0 campaign-delete-actions">
@@ -541,7 +552,9 @@
                 fields.kind.textContent = kind;
                 fields.message.textContent = handler === 'DeleteGroup'
                     ? 'You will delete all campaigns from this source and the associated history.'
-                    : 'You will delete this campaign and its associated history.';
+                    : handler === 'DeletePlan'
+                        ? 'You will delete the complete generated campaign, including posts, emails, landing page, captured leads, suggestions and history.'
+                        : 'You will delete this campaign and its associated history.';
             });
         })();
     </script>

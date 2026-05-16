@@ -18,15 +18,18 @@ public class SettingsModel : PageModel
     private readonly ApplicationDbContext _db;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IOptionsMonitor<NotificationOptions> _notificationOptions;
+    private readonly IIntegrationAuthorizationService _authorization;
 
     public SettingsModel(
         ApplicationDbContext db,
         UserManager<IdentityUser> userManager,
-        IOptionsMonitor<NotificationOptions> notificationOptions)
+        IOptionsMonitor<NotificationOptions> notificationOptions,
+        IIntegrationAuthorizationService authorization)
     {
         _db = db;
         _userManager = userManager;
         _notificationOptions = notificationOptions;
+        _authorization = authorization;
     }
 
     [BindProperty]
@@ -35,10 +38,19 @@ public class SettingsModel : PageModel
     [TempData]
     public string? StatusMessage { get; set; }
 
+    [TempData]
+    public string? TestPostMessage { get; set; }
+
+    [TempData]
+    public string? TestPostStatus { get; set; }
+
     public bool TelegramBotConfigured { get; private set; }
     public bool EmailTransportConfigured { get; private set; }
     public int EmailSenderProfileCount { get; private set; }
     public IReadOnlyList<ScheduleTimeZoneChoice> NotificationTimeZones { get; private set; } = TimeZoneCatalog.GetScheduleChoices(DateTime.UtcNow);
+    public string TestPostAlertClass => string.Equals(TestPostStatus, "success", StringComparison.OrdinalIgnoreCase)
+        ? "alert-success"
+        : "alert-warning";
 
     public class InputModel
     {
@@ -163,10 +175,59 @@ public class SettingsModel : PageModel
 
     public async Task OnGetAsync()
     {
+        PrepareRuntimeState();
+        await LoadInputAsync();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        PrepareRuntimeState();
+        ValidateInput();
+
+        if (!ModelState.IsValid)
+            return Page();
+
+        await SaveSettingsAsync();
+        StatusMessage = "Marketing channel settings saved.";
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostTestPostAsync(string platform)
+    {
+        PrepareRuntimeState();
+        ValidateInput();
+
+        if (!ModelState.IsValid)
+        {
+            TestPostStatus = "warning";
+            TestPostMessage = "Test post was not sent. Fix the highlighted settings first.";
+            return Page();
+        }
+
+        var settings = await SaveSettingsAsync();
+        var authorization = GetTestPostAuthorization(settings, platform);
+        if (!authorization.IsAuthorized)
+        {
+            TestPostStatus = "warning";
+            TestPostMessage = $"{authorization.Channel} test post was not sent. {authorization.Detail}";
+            return RedirectToPage();
+        }
+
+        var preview = $"Promovert test post - {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC. This confirms that {authorization.Channel} can be used for approved campaigns.";
+        TestPostStatus = "success";
+        TestPostMessage = $"Test post check completed for {authorization.Channel}. {authorization.Detail} Preview: \"{preview}\"";
+        return RedirectToPage();
+    }
+
+    private void PrepareRuntimeState()
+    {
         TelegramBotConfigured = !string.IsNullOrWhiteSpace(_notificationOptions.CurrentValue.TelegramBotToken);
         EmailTransportConfigured = IsEmailTransportConfigured();
         EmailSenderProfileCount = CountEmailSenderProfiles();
+    }
 
+    private async Task LoadInputAsync()
+    {
         var userId = _userManager.GetUserId(User) ?? string.Empty;
         var settings = await _db.UserNotificationSettings
             .AsNoTracking()
@@ -208,12 +269,8 @@ public class SettingsModel : PageModel
         };
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    private void ValidateInput()
     {
-        TelegramBotConfigured = !string.IsNullOrWhiteSpace(_notificationOptions.CurrentValue.TelegramBotToken);
-        EmailTransportConfigured = IsEmailTransportConfigured();
-        EmailSenderProfileCount = CountEmailSenderProfiles();
-
         ValidateOptionalUrl("Input.WebhookUrl", Input.WebhookUrl);
         ValidateOptionalUrl("Input.DiscordWebhookUrl", Input.DiscordWebhookUrl);
         ValidateOptionalUrl("Input.SlackWebhookUrl", Input.SlackWebhookUrl);
@@ -226,10 +283,10 @@ public class SettingsModel : PageModel
         ValidateTrackingId("Input.GoogleAnalyticsMeasurementId", Input.GoogleAnalyticsMeasurementId, "Use a valid GA4 measurement ID, for example G-ABC123XYZ.");
         ValidateTrackingId("Input.MetaPixelId", Input.MetaPixelId, "Use a valid Meta Pixel ID.");
         ValidateOptionalColor("Input.AgencyBrandColor", Input.AgencyBrandColor);
+    }
 
-        if (!ModelState.IsValid)
-            return Page();
-
+    private async Task<UserNotificationSettings> SaveSettingsAsync()
+    {
         var userId = _userManager.GetUserId(User) ?? string.Empty;
         var settings = await _db.UserNotificationSettings.FirstOrDefaultAsync(x => x.UserId == userId);
         if (settings is null)
@@ -249,8 +306,19 @@ public class SettingsModel : PageModel
         settings.AlertTimeZone = TimeZoneCatalog.Normalize(Input.AlertTimeZone);
 
         await _db.SaveChangesAsync();
-        StatusMessage = "Marketing channel settings saved.";
-        return RedirectToPage();
+        return settings;
+    }
+
+    private PublicationAuthorization GetTestPostAuthorization(UserNotificationSettings settings, string platform)
+    {
+        return (platform ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "linkedin" => _authorization.GetPostAuthorization(settings, "LinkedIn"),
+            "instagram" => _authorization.GetPostAuthorization(settings, "Instagram"),
+            "facebook" => _authorization.GetPostAuthorization(settings, "Facebook"),
+            "googlebusiness" or "google business" => _authorization.GetPostAuthorization(settings, "Google Business"),
+            _ => new PublicationAuthorization(false, "Selected channel", "Choose LinkedIn, Instagram, Facebook or Google Business.")
+        };
     }
 
     private void ApplyOfficialIntegrations(UserNotificationSettings settings)

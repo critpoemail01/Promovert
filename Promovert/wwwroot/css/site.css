@@ -1076,6 +1076,28 @@ a { text-decoration: none; }
   box-shadow: 0 18px 44px rgba(0,0,0,0.22);
 }
 
+.app-sidebar-user {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--Promovert-text-muted);
+  font-size: clamp(0.72rem, 0.68rem + 0.2vw, 0.84rem);
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.app-sidebar-footer .btn {
+  min-height: 34px;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 .app-main {
   min-width: 0;
   background:
@@ -5758,6 +5780,29 @@ a { text-decoration: none; }
 
 .official-integration-fields .wide {
   grid-column: 1 / -1;
+}
+
+.official-test-post-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.official-test-post-actions .btn {
+  min-height: 34px;
+  white-space: nowrap;
+}
+
+.official-test-post-actions small {
+  min-width: 180px;
+  flex: 1 1 180px;
+  color: rgba(232,238,255,0.58);
+  font-weight: 750;
+  line-height: 1.35;
 }
 
 .official-auth-grid {

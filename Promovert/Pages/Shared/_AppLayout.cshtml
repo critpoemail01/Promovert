@@ -89,7 +89,7 @@
         </nav>
 
         <div class="app-sidebar-footer mt-auto">
-            <div class="small text-muted">@User?.Identity?.Name</div>
+            <div class="app-sidebar-user" title="@User?.Identity?.Name">@User?.Identity?.Name</div>
             @await Component.InvokeAsync("AppPlanCta")
         </div>
     </aside>

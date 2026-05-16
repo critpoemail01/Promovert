@@ -18,6 +18,10 @@
     {
         <div class="alert alert-success mt-4 mb-0">@Model.StatusMessage</div>
     }
+    @if (!string.IsNullOrWhiteSpace(Model.TestPostMessage))
+    {
+        <div class="alert @Model.TestPostAlertClass mt-4 mb-0">@Model.TestPostMessage</div>
+    }
 
     <form method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger mt-3"></div>
@@ -95,6 +99,12 @@
                         <label><span>Organization name</span><input asp-for="Input.LinkedInOrganizationName" class="form-control" placeholder="Company Page name" /></label>
                         <label class="wide"><span>Scopes</span><input asp-for="Input.LinkedInScopes" class="form-control" /></label>
                     </div>
+                    <div class="official-test-post-actions">
+                        <button class="btn btn-sm btn-outline-secondary" type="submit" asp-page-handler="TestPost" name="platform" value="LinkedIn">
+                            <i class="bi bi-send-check me-1"></i>Send test post
+                        </button>
+                        <small>Uses the current LinkedIn authorization fields.</small>
+                    </div>
                     <span asp-validation-for="Input.LinkedInOrganizationId" class="text-danger"></span>
                 </article>
 
@@ -121,6 +131,12 @@
                         <label><span>Account name</span><input asp-for="Input.InstagramBusinessAccountName" class="form-control" placeholder="@("@brand")" /></label>
                         <label class="wide"><span>Scopes</span><input asp-for="Input.InstagramScopes" class="form-control" /></label>
                     </div>
+                    <div class="official-test-post-actions">
+                        <button class="btn btn-sm btn-outline-secondary" type="submit" asp-page-handler="TestPost" name="platform" value="Instagram">
+                            <i class="bi bi-send-check me-1"></i>Send test post
+                        </button>
+                        <small>Uses the current Instagram Business authorization fields.</small>
+                    </div>
                     <span asp-validation-for="Input.InstagramBusinessAccountId" class="text-danger"></span>
                 </article>
 
@@ -146,6 +162,12 @@
                         <label><span>Page ID</span><input asp-for="Input.FacebookPageId" class="form-control" placeholder="Facebook Page ID" /></label>
                         <label><span>Page name</span><input asp-for="Input.FacebookPageName" class="form-control" placeholder="Page name" /></label>
                         <label class="wide"><span>Scopes</span><input asp-for="Input.FacebookScopes" class="form-control" /></label>
+                    </div>
+                    <div class="official-test-post-actions">
+                        <button class="btn btn-sm btn-outline-secondary" type="submit" asp-page-handler="TestPost" name="platform" value="Facebook">
+                            <i class="bi bi-send-check me-1"></i>Send test post
+                        </button>
+                        <small>Uses the current Facebook Page authorization fields.</small>
                     </div>
                     <span asp-validation-for="Input.FacebookPageId" class="text-danger"></span>
                 </article>
@@ -189,6 +211,12 @@
                         <span>Profile name</span>
                         <input asp-for="Input.GoogleBusinessProfileName" class="form-control" placeholder="Business profile name" />
                     </label>
+                    <div class="official-test-post-actions">
+                        <button class="btn btn-sm btn-outline-secondary" type="submit" asp-page-handler="TestPost" name="platform" value="GoogleBusiness">
+                            <i class="bi bi-send-check me-1"></i>Send test post
+                        </button>
+                        <small>Uses the current Google Business authorization fields.</small>
+                    </div>
                     <span asp-validation-for="Input.GoogleBusinessProfileName" class="text-danger"></span>
                 </article>
 
