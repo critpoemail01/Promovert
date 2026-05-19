@@ -129,15 +129,15 @@ public class IndexModel : PageModel
         public int AudienceRadiusKm { get; set; } = 25;
 
         [Display(Name = "Start date")]
-        public DateOnly StartDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+        public DateOnly StartDate { get; set; } = DefaultCampaignStartDate();
 
         [Display(Name = "Duration")]
         [Range(7, 90)]
-        public int DurationDays { get; set; } = 14;
+        public int DurationDays { get; set; } = 7;
 
         [Display(Name = "Publishing frequency")]
         [Required]
-        public string Frequency { get; set; } = MvpFrequency;
+        public string Frequency { get; set; } = "Daily";
 
         [Display(Name = "Potential-client emails")]
         [StringLength(4000)]
@@ -632,9 +632,9 @@ public class IndexModel : PageModel
         Input.AudienceLatitude = source.AudienceLatitude?.ToString(CultureInfo.InvariantCulture);
         Input.AudienceLongitude = source.AudienceLongitude?.ToString(CultureInfo.InvariantCulture);
         Input.AudienceRadiusKm = source.AudienceRadiusKm ?? 25;
-        Input.StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
-        Input.DurationDays = Math.Clamp(source.EndDate.DayNumber - source.StartDate.DayNumber + 1, 7, 90);
-        Input.Frequency = source.Frequency;
+        Input.StartDate = DefaultCampaignStartDate();
+        Input.DurationDays = 7;
+        Input.Frequency = "Daily";
         Input.EmailAudience = MergeEmailAudience(
             source.EmailAudience,
             source.LandingPage?.Leads.Select(x => x.Email) ?? Enumerable.Empty<string>());
@@ -692,6 +692,13 @@ public class IndexModel : PageModel
         Input.Tone = Clip($"{template.Sector.ToLowerInvariant()}, practical and conversion-focused", 80);
         Input.DetectedApplicationType = template.Sector;
         Input.SelectedTemplateKey = template.Key;
+    }
+
+    public static DateOnly DefaultCampaignStartDate()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var daysUntilMonday = ((int)DayOfWeek.Monday - (int)today.DayOfWeek + 7) % 7;
+        return today.AddDays(daysUntilMonday == 0 ? 7 : daysUntilMonday);
     }
 
     private CampaignLibraryRequest BuildCampaignLibraryRequest()

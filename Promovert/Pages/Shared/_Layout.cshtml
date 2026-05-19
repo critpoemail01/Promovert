@@ -17,7 +17,6 @@
     var howItWorksActive = isActive("/HowItWorks");
     var aboutActive = isActive("/About");
     var newsActive = isActive("/News");
-    var dashboardActive = isActive("/App/Dashboard");
 }
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -39,7 +38,7 @@
 <body>
 <header>
     <nav class="navbar navbar-expand-lg Promovert-nav">
-        <div class="container">
+        <div class="container-fluid public-nav-container">
             <a class="navbar-brand brand-lockup" asp-page="/Index" aria-label="Promovert home">
                 <span class="brand-mark">
                     <img src="~/assets/brand/Promovert_brand_mark.svg" width="42" height="42" asp-append-version="true" alt="" />
@@ -57,15 +56,10 @@
 
             <div class="collapse navbar-collapse" id="nav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link @(pricingActive ? "active" : "")" asp-page="/Pricing" aria-current="@(pricingActive ? "page" : null)"><i class="bi bi-credit-card-2-front"></i><span>Pricing</span></a></li>
+                    <li class="nav-item"><a class="nav-link @(pricingActive ? "active" : "")" asp-page="/Pricing" aria-current="@(pricingActive ? "page" : null)"><i class="bi bi-credit-card-2-front"></i><span>Plans</span></a></li>
                     <li class="nav-item"><a class="nav-link @(howItWorksActive ? "active" : "")" asp-page="/HowItWorks" aria-current="@(howItWorksActive ? "page" : null)"><i class="bi bi-diagram-3"></i><span>How it works</span></a></li>
                     <li class="nav-item"><a class="nav-link @(aboutActive ? "active" : "")" asp-page="/About" aria-current="@(aboutActive ? "page" : null)"><i class="bi bi-info-circle"></i><span>About</span></a></li>
                     <li class="nav-item"><a class="nav-link @(newsActive ? "active" : "")" asp-page="/News" aria-current="@(newsActive ? "page" : null)"><i class="bi bi-megaphone"></i><span>News</span></a></li>
-
-                    @if (User?.Identity?.IsAuthenticated == true)
-                    {
-                        <li class="nav-item"><a class="nav-link @(dashboardActive ? "active" : "")" asp-page="/App/Dashboard" aria-current="@(dashboardActive ? "page" : null)"><i class="bi bi-bar-chart-fill"></i><span>Dashboard</span></a></li>
-                    }
                 </ul>
 
                 <partial name="_LoginPartial" />

@@ -5,17 +5,17 @@
 }
 
 <section class="hero-section">
-    <div class="container">
+    <div class="container homepage-container">
         <div class="promo-strip mb-4">
             <div>
-                <span class="promo-label">Launch</span>
+                <span class="promo-label"><i class="bi bi-lightning-charge-fill"></i> Launch</span>
                 <span class="promo-copy">Start with 5 free credits. The unlimited plan is EUR 49.99/month or EUR 299/year when marketing becomes continuous.</span>
             </div>
             <a class="promo-link" asp-page="/Pricing">View pricing <i class="bi bi-arrow-right-short"></i></a>
         </div>
 
         <div class="surface hero-card p-4 p-md-5">
-            <div class="row align-items-center g-4">
+            <div class="row align-items-center g-4 hero-grid">
                 <div class="col-lg-7">
                     <div class="hero-kicker mb-3">
                         <i class="bi bi-megaphone-fill"></i>
@@ -27,7 +27,7 @@
                         Enter the URL, validate the Business DNA, choose a suggested campaign and approve the posts, emails and landing page before publishing.
                     </p>
 
-                    <div class="d-flex flex-wrap gap-2">
+                    <div class="hero-actions">
                         <button type="button" class="btn btn-primary btn-lg" data-auth-open="register">
                             Start free
                         </button>
@@ -96,35 +96,74 @@
             </div>
         </div>
 
-        <section class="mt-5">
-            <div class="section-header">
-                <span class="section-eyebrow"><i class="bi bi-stars"></i> Campaign as the main unit</span>
-                <h2 class="section-title">Strategy, content, lead capture and reporting in one workflow.</h2>
-                <p class="section-copy">Promovert focuses on three outcomes: users reached, users who interacted and users who subscribed or bought.</p>
+        <section class="campaign-unit-section mt-5">
+            <div class="campaign-unit-head">
+                <div class="section-header mb-0">
+                    <span class="section-eyebrow"><i class="bi bi-stars"></i> Campaign as the main unit</span>
+                    <h2 class="section-title">Strategy, content, lead capture and reporting in one workflow.</h2>
+                    <p class="section-copy">Promovert turns a company website into a structured campaign: campaign brief, channel posts, email sequence, landing page, form, tracking and report.</p>
+                </div>
+
+                <div class="campaign-unit-outcomes" aria-label="Campaign outcomes">
+                    <span class="tag">Business outcomes</span>
+                    <div>
+                        <strong>Reach</strong>
+                        <small>Users reached by the campaign</small>
+                    </div>
+                    <div>
+                        <strong>Interaction</strong>
+                        <small>Clicks, replies, comments and form starts</small>
+                    </div>
+                    <div>
+                        <strong>Conversion</strong>
+                        <small>Leads, subscriptions or purchases</small>
+                    </div>
+                </div>
             </div>
 
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="surface feature-card h-100">
-                        <div class="icon-pill mb-3"><i class="bi bi-fingerprint"></i></div>
+            <div class="campaign-unit-grid">
+                <div class="surface feature-card campaign-unit-card">
+                    <div class="campaign-unit-card-top">
+                        <span class="campaign-unit-step">01</span>
+                        <div class="icon-pill"><i class="bi bi-fingerprint"></i></div>
+                    </div>
+                    <div>
                         <h5>Business DNA</h5>
                         <p class="mb-0 muted">Analyzes the URL and creates the commercial profile: product, audience, offer, tone, sector and campaign opportunities.</p>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="surface feature-card h-100">
-                        <div class="icon-pill mb-3"><i class="bi bi-calendar2-week"></i></div>
+
+                <div class="surface feature-card campaign-unit-card">
+                    <div class="campaign-unit-card-top">
+                        <span class="campaign-unit-step">02</span>
+                        <div class="icon-pill"><i class="bi bi-calendar2-week"></i></div>
+                    </div>
+                    <div>
                         <h5>Post calendar</h5>
                         <p class="mb-0 muted">Generates hooks, captions, short scripts and channel variations for the selected period.</p>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="surface feature-card h-100">
-                        <div class="icon-pill mb-3"><i class="bi bi-window-stack"></i></div>
+
+                <div class="surface feature-card campaign-unit-card">
+                    <div class="campaign-unit-card-top">
+                        <span class="campaign-unit-step">03</span>
+                        <div class="icon-pill"><i class="bi bi-window-stack"></i></div>
+                    </div>
+                    <div>
                         <h5>Landing page and leads</h5>
                         <p class="mb-0 muted">Creates a conversion page with form, UTM, tracking and campaign source.</p>
                     </div>
                 </div>
+            </div>
+
+            <div class="campaign-unit-flow" aria-label="Campaign workflow">
+                <span><i class="bi bi-link-45deg"></i> Company URL</span>
+                <i class="bi bi-arrow-right"></i>
+                <span><i class="bi bi-diagram-3"></i> Complete campaign</span>
+                <i class="bi bi-arrow-right"></i>
+                <span><i class="bi bi-check2-square"></i> Approval</span>
+                <i class="bi bi-arrow-right"></i>
+                <span><i class="bi bi-graph-up-arrow"></i> Report and next campaign</span>
             </div>
         </section>
 

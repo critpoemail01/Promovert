@@ -16,7 +16,7 @@
 </section>
 
 <div class="planner-layout mt-4">
-    <form id="campaign-config" method="post" asp-page-handler="Generate" class="surface app-panel planner-form">
+    <form id="campaign-config" method="post" asp-page-handler="Generate" class="surface app-panel planner-form" data-campaign-form>
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         @if (!string.IsNullOrWhiteSpace(Model.SuggestionMessage))
         {
@@ -257,15 +257,13 @@
                     <div class="planner-location-grid mt-3">
                         <div class="planner-location-country" data-location-panel="country">
                             <label asp-for="Input.AudienceCountry" class="form-label"></label>
-                            <input asp-for="Input.AudienceCountry" class="form-control" list="audienceCountryOptions" autocomplete="country-name" placeholder="Portugal, Spain, United States..." data-location-country />
-                            <datalist id="audienceCountryOptions" data-location-country-list></datalist>
+                            <input asp-for="Input.AudienceCountry" class="form-control" autocomplete="off" aria-autocomplete="list" placeholder="Portugal, Spain, United States..." data-location-country data-1p-ignore="true" data-lpignore="true" data-form-type="other" />
                             <div class="planner-location-autocomplete" data-location-country-menu hidden></div>
                             <span asp-validation-for="Input.AudienceCountry" class="text-danger"></span>
                         </div>
                         <div class="planner-location-city" data-location-panel="city">
                             <label asp-for="Input.AudienceCity" class="form-label"></label>
-                            <input asp-for="Input.AudienceCity" class="form-control" list="audienceCityOptions" autocomplete="address-level2" placeholder="Lisbon, Porto, Madrid..." data-location-city />
-                            <datalist id="audienceCityOptions" data-location-city-list></datalist>
+                            <input asp-for="Input.AudienceCity" class="form-control" autocomplete="off" aria-autocomplete="list" placeholder="Lisbon, Porto, Madrid..." data-location-city data-1p-ignore="true" data-lpignore="true" data-form-type="other" />
                             <div class="planner-location-autocomplete" data-location-city-menu hidden></div>
                             <span asp-validation-for="Input.AudienceCity" class="text-danger"></span>
                         </div>
@@ -313,6 +311,7 @@
             <div class="col-md-4">
                 <label asp-for="Input.StartDate" class="form-label"></label>
                 <input asp-for="Input.StartDate" class="form-control" type="date" />
+                <div class="form-text">Default starts next Monday.</div>
                 <span asp-validation-for="Input.StartDate" class="text-danger"></span>
             </div>
             <div class="col-md-4">
@@ -324,6 +323,7 @@
                     <option value="60">2 months</option>
                     <option value="90">3 months</option>
                 </select>
+                <div class="form-text">Default generates a one-week campaign.</div>
                 <span asp-validation-for="Input.DurationDays" class="text-danger"></span>
             </div>
             <div class="col-md-4">
@@ -417,6 +417,21 @@
                     <div class="form-text">One email per line. Suggested emails stay here for review before generating the campaign.</div>
                     <span asp-validation-for="Input.EmailAudience" class="text-danger"></span>
 
+                    <div class="client-email-template-preview mt-3" data-client-email-template hidden>
+                        <div class="client-email-template-head">
+                            <span><i class="bi bi-envelope-paper"></i>Email model for clients</span>
+                            <small data-client-email-count>0 recipients</small>
+                        </div>
+                        <div class="client-email-template-field">
+                            <strong>Subject</strong>
+                            <p data-client-email-subject></p>
+                        </div>
+                        <div class="client-email-template-field">
+                            <strong>Body</strong>
+                            <pre data-client-email-body></pre>
+                        </div>
+                    </div>
+
                     @if (Model.LeadSearchQueries.Any() || Model.DiscoveredLeadEmails.Any() || Model.LeadDiscoveryWarnings.Any())
                     {
                         <div class="lead-discovery-results">
@@ -462,8 +477,8 @@
         </div>
 
         <div id="step-generate" class="alert-form-actions mt-4">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-stars me-1"></i>Generate post drafts</button>
-            <span class="muted">Review the generated posts and approve or reject each one before scheduling.</span>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-stars me-1"></i>Generate campaign drafts</button>
+            <span class="muted">Review the generated posts and email templates before scheduling.</span>
         </div>
     </form>
 
@@ -744,5 +759,66 @@
             toggle.addEventListener('change', syncCrmFields);
             syncCrmFields();
         });
+
+        (() => {
+            const form = document.querySelector('form[data-campaign-form]');
+            const preview = document.querySelector('[data-client-email-template]');
+            if (!form || !preview) return;
+
+            const fields = {
+                productName: form.querySelector('[name="Input.ProductName"]'),
+                productUrl: form.querySelector('[name="Input.ProductUrl"]'),
+                companyOrIdea: form.querySelector('[name="Input.CompanyOrIdea"]'),
+                targetAudience: form.querySelector('[name="Input.TargetAudience"]'),
+                valueProposition: form.querySelector('[name="Input.ValueProposition"]'),
+                campaignGoal: form.querySelector('[name="Input.CampaignGoal"]'),
+                emailAudience: form.querySelector('[name="Input.EmailAudience"]')
+            };
+            const countNode = preview.querySelector('[data-client-email-count]');
+            const subjectNode = preview.querySelector('[data-client-email-subject]');
+            const bodyNode = preview.querySelector('[data-client-email-body]');
+
+            const value = (input, fallback = '') => (input?.value || fallback).trim();
+            const compact = (text, max) => {
+                const normalized = (text || '').replace(/\s+/g, ' ').trim();
+                return normalized.length > max ? `${normalized.slice(0, max - 3).trim()}...` : normalized;
+            };
+            const recipients = () => value(fields.emailAudience)
+                .split(/[\n\r,;]+/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+
+            const syncEmailTemplate = () => {
+                const contacts = recipients();
+                preview.hidden = contacts.length === 0;
+                if (contacts.length === 0) return;
+
+                const productName = compact(value(fields.productName, 'our company'), 80);
+                const company = compact(value(fields.companyOrIdea, `${productName} helps companies solve a specific business problem.`), 210);
+                const audience = compact(value(fields.targetAudience, 'companies that need a clearer path to results'), 170);
+                const valueProposition = compact(value(fields.valueProposition, 'a practical way to improve results with less manual work'), 230);
+                const goal = compact(value(fields.campaignGoal, 'qualified enquiries'), 90).toLowerCase();
+                const url = value(fields.productUrl);
+                const cta = url
+                    ? `You can review it here: ${url}`
+                    : 'Would it make sense to send you a quick overview?';
+
+                countNode.textContent = `${contacts.length} recipient${contacts.length === 1 ? '' : 's'}`;
+                subjectNode.textContent = `${productName} for ${goal}`;
+                bodyNode.textContent =
+                    `Hi {{FirstName}},\n\n` +
+                    `I wanted to introduce ${productName}.\n\n` +
+                    `${company}\n\n` +
+                    `For ${audience}, the main value is: ${valueProposition}.\n\n` +
+                    `${cta}\n\n` +
+                    `Best regards,\n${productName}`;
+            };
+
+            Object.values(fields).forEach((input) => {
+                input?.addEventListener('input', syncEmailTemplate);
+                input?.addEventListener('change', syncEmailTemplate);
+            });
+            syncEmailTemplate();
+        })();
     </script>
 }

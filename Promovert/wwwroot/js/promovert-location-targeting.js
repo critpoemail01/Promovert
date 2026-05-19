@@ -5,8 +5,6 @@
   const scopeInputs = Array.from(root.querySelectorAll('input[name="Input.AudienceLocationScope"]'));
   const countryInput = root.querySelector('[data-location-country]');
   const cityInput = root.querySelector('[data-location-city]');
-  const countryList = root.querySelector('[data-location-country-list]');
-  const cityList = root.querySelector('[data-location-city-list]');
   const countryMenu = root.querySelector('[data-location-country-menu]');
   const cityMenu = root.querySelector('[data-location-city-menu]');
   const radiusInput = root.querySelector('[data-location-radius]');
@@ -22,6 +20,9 @@
   let map = null;
   let marker = null;
   let circle = null;
+  const themeStyles = getComputedStyle(document.documentElement);
+  const mapStrokeColor = themeStyles.getPropertyValue('--Promovert-positive').trim() || '#34d399';
+  const mapFillColor = themeStyles.getPropertyValue('--Promovert-accent-2').trim() || '#38bdf8';
 
   const countryOptions = [
     'Portugal',
@@ -126,13 +127,6 @@
       .trim();
   }
 
-  function createOption(value, label) {
-    const option = document.createElement('option');
-    option.value = value;
-    if (label) option.label = label;
-    return option;
-  }
-
   function optionScore(label, query) {
     const normalizedLabel = normalizeText(label);
     const normalizedQuery = normalizeText(query);
@@ -144,6 +138,8 @@
   }
 
   function sortSuggestions(items, query, labelSelector) {
+    if (!normalizeText(query)) return items;
+
     return [...items].sort((first, second) => {
       const firstScore = optionScore(labelSelector(first), query);
       const secondScore = optionScore(labelSelector(second), query);
@@ -191,7 +187,6 @@
 
     renderMenu(countryMenu, sortSuggestions(matches, query, (item) => item.label), (suggestion) => {
       countryInput.value = suggestion.value;
-      populateCityOptions();
       clearMenu(countryMenu);
       updateSummary();
     });
@@ -221,7 +216,6 @@
     renderMenu(cityMenu, sortSuggestions(matches, query, (item) => `${item.label}, ${item.meta}`), (suggestion) => {
       cityInput.value = suggestion.value;
       if (countryInput) countryInput.value = suggestion.entry.country;
-      populateCityOptions();
       clearMenu(cityMenu);
       applySelectedCity();
     });
@@ -235,26 +229,6 @@
     if (exact) return exact;
 
     return countryOptions.find((country) => normalizeText(country).startsWith(normalized)) || '';
-  }
-
-  function populateCountryOptions() {
-    if (!countryList) return;
-    countryList.replaceChildren(...countryOptions.map((country) => createOption(country)));
-  }
-
-  function populateCityOptions() {
-    if (!cityList) return;
-
-    const selectedCountry = resolveCountry(countryInput && countryInput.value);
-    const cities = selectedCountry
-      ? cityOptions.filter((entry) => entry.country === selectedCountry)
-      : cityOptions;
-
-    cityList.replaceChildren(
-      ...cities
-        .slice(0, 120)
-        .map((entry) => createOption(entry.city, entry.country))
-    );
   }
 
   function findSelectedCity() {
@@ -276,7 +250,6 @@
 
     if (countryInput && countryInput.value.trim() !== selected.country) {
       countryInput.value = selected.country;
-      populateCityOptions();
     }
 
     if (selectedScope() === 'City') {
@@ -398,9 +371,9 @@
     if (!circle) {
       circle = L.circle(point, {
         radius: meters,
-        color: '#84cc16',
+        color: mapStrokeColor,
         weight: 2,
-        fillColor: '#22d3ee',
+        fillColor: mapFillColor,
         fillOpacity: 0.14
       }).addTo(map);
     } else {
@@ -440,12 +413,10 @@
   if (countryInput) {
     countryInput.addEventListener('focus', renderCountryAutocomplete);
     countryInput.addEventListener('input', () => {
-      populateCityOptions();
       renderCountryAutocomplete();
       updateSummary();
     });
     countryInput.addEventListener('change', () => {
-      populateCityOptions();
       applySelectedCity();
       renderCityAutocomplete();
       updateSummary();
@@ -481,7 +452,5 @@
     mapEl.textContent = 'Map unavailable. You can still type a city and radius.';
   }
 
-  populateCountryOptions();
-  populateCityOptions();
   setPanels();
 })();

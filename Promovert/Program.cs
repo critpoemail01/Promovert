@@ -45,6 +45,7 @@ if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(goo
 // Redirect unauthenticated users to the home page (where we open a modal)
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    options.Cookie.Name = ".Promovert.Auth";
     options.LoginPath = "/";
     options.AccessDeniedPath = "/";
     options.ReturnUrlParameter = "returnUrl";
@@ -59,6 +60,11 @@ builder.Services.ConfigureApplicationCookie(options =>
         context.Response.Redirect("/?login=1");
         return Task.CompletedTask;
     };
+});
+
+builder.Services.ConfigureExternalCookie(options =>
+{
+    options.Cookie.Name = ".Promovert.External";
 });
 
 // JSON auth endpoints used by the modal (instead of full-page Identity UI)

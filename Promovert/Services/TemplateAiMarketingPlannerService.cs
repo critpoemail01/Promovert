@@ -435,7 +435,7 @@ public sealed class TemplateAiMarketingPlannerService : IAiMarketingPlannerServi
         return theme switch
         {
             "Quick intro" =>
-                $"Hi {{FirstName}},\n\nI noticed teams like yours in {request.Location.Summary} often need a clearer way to reach {request.CampaignGoal.ToLowerInvariant()}.\n\n{request.ProductName} helps {request.TargetAudience} with {request.ValueProposition}.\n\n{cta}",
+                $"Hi {{FirstName}},\n\nI wanted to introduce {request.ProductName}.\n\n{request.CompanyOrIdea}\n\nFor {request.TargetAudience} in {request.Location.Summary}, the main value is: {request.ValueProposition}.\n\n{cta}",
             "Pain and cost" =>
                 $"Hi {{FirstName}},\n\nThe expensive part is not just the task itself. It is the delay, manual follow-up and missed opportunities around it.\n\nThat is where {request.ProductName} can help: {request.ValueProposition}.\n\n{cta}",
             "Use case" =>

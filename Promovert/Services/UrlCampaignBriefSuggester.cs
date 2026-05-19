@@ -1,28 +1,51 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Promovert.Services;
 
 public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
 {
+    private const int MaxHtmlCharacters = 300_000;
+    private const int MaxAdditionalPages = 3;
+    private const int MaxBodySnippets = 18;
+    private const int MaxHeadingSnippets = 12;
+
+    private static readonly string[] UsefulInternalLinkHints =
+    [
+        "about", "sobre", "quem-somos", "empresa",
+        "service", "services", "servico", "servicos", "serviço", "serviços",
+        "product", "products", "produto", "produtos", "solutions", "solucoes", "soluções",
+        "software", "platform", "plataforma", "consultoria", "industrial",
+        "sbi", "crm", "mes", "planeamento", "manutencao", "manutenção", "qualidade", "metrologia"
+    ];
+
     private static readonly AppTypeRule[] Rules =
     [
-        new("Industrial / manufacturing", ["industrial", "industry", "factory", "manufacturing", "production", "operations", "maintenance", "energy", "planning"],
+        new("Industrial / manufacturing", ["industrial", "industry", "factory", "manufacturing", "production", "produção", "operacoes", "operações", "operations", "maintenance", "manutenção", "energy", "energia", "planning", "planeamento", "mes"],
             "industrial SMEs, factories, production managers, maintenance teams and operations directors",
             "turn operational problems into measurable improvements in production, maintenance, planning or costs",
             "qualified industrial leads and diagnostic requests",
             "practical, concrete and results-focused",
             ["LinkedIn", "Email", "Facebook", "Instagram"]),
 
-        new("B2B SaaS / automation", ["crm", "automation", "workflow", "pipeline", "dashboard", "saas", "b2b"],
+        new("Digital transformation / software consulting", ["transformação digital", "transformacao digital", "digital transformation", "soluções de software", "solucoes de software", "software", "aplicações móveis", "aplicacoes moveis", "integração de sistemas", "integracao de sistemas", "consultoria", "iot", "big data", "data science", "sbi", "digitalização", "digitalizacao"],
+            "companies that need digital transformation, custom software, system integration, process automation or industrial management tools",
+            "turn business processes into integrated digital workflows with custom software, automation, data and operational platforms",
+            "qualified project enquiries and discovery calls",
+            "consultative, practical and innovation-focused",
+            ["LinkedIn", "Email", "Facebook", "Instagram"]),
+
+        new("B2B SaaS / automation", ["crm", "automation", "automação", "automatização", "workflow", "pipeline", "dashboard", "saas", "b2b", "processos", "integração", "integracao", "sistemas"],
             "B2B teams, founders, operations managers and sales teams that need repeatable processes",
             "reduce manual work, organize recurring workflows and make acquisition or operations measurable",
             "demo bookings and trial signups",
             "clear, practical and business-focused",
             ["LinkedIn", "Instagram", "TikTok", "Facebook"]),
 
-        new("AI product", ["ai", "artificial intelligence", "llm", "chatbot", "agent", "prompt", "machine learning", "automation"],
+        new("AI product", ["ai", "artificial intelligence", "inteligência artificial", "inteligencia artificial", "llm", "chatbot", "agent", "prompt", "machine learning", "automation", "automação", "automatização"],
             "teams and professionals looking for AI-assisted productivity or automation",
             "turn manual tasks into faster AI-assisted workflows with clear business outcomes",
             "trial signups and product demos",
@@ -115,6 +138,29 @@ public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
 
         await GuardAgainstPrivateHostAsync(uri, cancellationToken);
 
+        var pages = new List<PageMetadata>
+        {
+            await FetchPageMetadataAsync(uri, cancellationToken)
+        };
+
+        foreach (var internalPage in ResolveInternalPageLinks(uri, pages[0]).Take(MaxAdditionalPages))
+        {
+            try
+            {
+                await GuardAgainstPrivateHostAsync(internalPage, cancellationToken);
+                pages.Add(await FetchPageMetadataAsync(internalPage, cancellationToken));
+            }
+            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or TaskCanceledException)
+            {
+                // Secondary pages are useful context, but the homepage must still be enough to create a brief.
+            }
+        }
+
+        return SuggestFromPage(uri, MergeMetadata(pages));
+    }
+
+    private async Task<PageMetadata> FetchPageMetadataAsync(Uri uri, CancellationToken cancellationToken)
+    {
         using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
 
@@ -123,17 +169,18 @@ public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
             throw new InvalidOperationException("The URL did not return an HTML page that can be analyzed.");
 
         var html = await response.Content.ReadAsStringAsync(cancellationToken);
-        if (html.Length > 300_000)
-            html = html[..300_000];
+        if (html.Length > MaxHtmlCharacters)
+            html = html[..MaxHtmlCharacters];
 
-        return SuggestFromPage(uri, ExtractMetadata(html));
+        return ExtractMetadata(html);
     }
 
     public static UrlCampaignBriefSuggestion SuggestFromPage(Uri uri, PageMetadata metadata)
     {
         var title = FirstMeaningful(metadata.OgTitle, metadata.ApplicationName, metadata.Title, DomainName(uri));
-        var description = FirstMeaningful(metadata.OgDescription, metadata.Description, title);
-        var body = $"{title} {description} {uri.Host} {uri.AbsolutePath}".ToLowerInvariant();
+        var websiteSignals = WebsiteSignals(metadata).ToList();
+        var description = FirstMeaningful(metadata.OgDescription, metadata.Description, websiteSignals.FirstOrDefault(), title);
+        var body = NormalizeForSearch(string.Join(" ", new[] { title, description, uri.Host, uri.AbsolutePath }.Concat(websiteSignals)));
         var rule = Rules
             .Select(candidate => new { Rule = candidate, Score = candidate.Keywords.Count(keyword => KeywordMatches(body, keyword)) })
             .OrderByDescending(x => x.Score)
@@ -150,12 +197,12 @@ public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
             : rule.Rule;
 
         var productName = Clip(CleanProductName(title, uri), 160);
-        var evidence = Clip(description, 260);
+        var evidence = Clip(BuildEvidence(metadata, description), 360);
         return new UrlCampaignBriefSuggestion(
             productName,
-            Clip($"{productName} appears to be a {selected.Name.ToLowerInvariant()} based on its website. Main website signal: {evidence}", 400),
+            BuildCompanyOrIdea(productName, selected, metadata, evidence),
             Clip(selected.Audience, 700),
-            Clip($"{selected.ValueProposition}. Website signal: {evidence}", 700),
+            Clip($"{selected.ValueProposition}. Use these website proof points in the campaign: {evidence}", 700),
             Clip(selected.Goal, 200),
             Clip(selected.Tone, 80),
             selected.Platforms,
@@ -166,12 +213,212 @@ public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
 
     public static PageMetadata ExtractMetadata(string html)
     {
+        var readableHtml = RemoveNoisyHtml(html);
         return new PageMetadata(
             CleanHtml(ExtractTitle(html)),
             CleanHtml(ExtractMeta(html, "name", "description")),
             CleanHtml(ExtractMeta(html, "property", "og:title")),
             CleanHtml(ExtractMeta(html, "property", "og:description")),
-            CleanHtml(ExtractMeta(html, "name", "application-name")));
+            CleanHtml(ExtractMeta(html, "name", "application-name")),
+            ExtractHeadings(readableHtml),
+            ExtractBodySnippets(readableHtml),
+            ExtractLinks(html));
+    }
+
+    private static PageMetadata MergeMetadata(IReadOnlyList<PageMetadata> pages)
+    {
+        var homepage = pages[0];
+        return new PageMetadata(
+            FirstMeaningful(new[] { homepage.Title }.Concat(pages.Select(page => page.Title)).ToArray()),
+            FirstMeaningful(new[] { homepage.Description }.Concat(pages.Select(page => page.Description)).ToArray()),
+            FirstMeaningful(new[] { homepage.OgTitle }.Concat(pages.Select(page => page.OgTitle)).ToArray()),
+            FirstMeaningful(new[] { homepage.OgDescription }.Concat(pages.Select(page => page.OgDescription)).ToArray()),
+            FirstMeaningful(new[] { homepage.ApplicationName }.Concat(pages.Select(page => page.ApplicationName)).ToArray()),
+            DistinctCleanValues(pages.SelectMany(page => page.Headings), MaxHeadingSnippets, allowShort: true),
+            DistinctCleanValues(pages.SelectMany(page => page.BodySnippets), MaxBodySnippets, allowShort: false),
+            DistinctCleanValues(pages.SelectMany(page => page.InternalLinks), 80, allowShort: true));
+    }
+
+    private static IReadOnlyList<Uri> ResolveInternalPageLinks(Uri baseUri, PageMetadata metadata)
+    {
+        var candidates = new List<Uri>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var baseKey = UriKey(baseUri);
+
+        foreach (var href in metadata.InternalLinks)
+        {
+            if (string.IsNullOrWhiteSpace(href) || href.StartsWith("#", StringComparison.Ordinal))
+                continue;
+
+            if (href.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase) ||
+                href.StartsWith("tel:", StringComparison.OrdinalIgnoreCase) ||
+                href.StartsWith("javascript:", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (!Uri.TryCreate(baseUri, href, out var candidate) || candidate.Scheme is not ("http" or "https"))
+                continue;
+
+            if (!HostMatches(baseUri, candidate) || LooksLikeAsset(candidate.AbsolutePath))
+                continue;
+
+            candidate = StripQueryAndFragment(candidate);
+            var key = UriKey(candidate);
+            if (key == baseKey || !seen.Add(key))
+                continue;
+
+            candidates.Add(candidate);
+        }
+
+        return candidates
+            .OrderByDescending(InternalLinkScore)
+            .ThenBy(uri => uri.AbsolutePath.Length)
+            .ToList();
+    }
+
+    private static IEnumerable<string> WebsiteSignals(PageMetadata metadata)
+    {
+        return DistinctCleanValues(
+            new[] { metadata.OgDescription, metadata.Description }
+                .Concat(metadata.Headings)
+                .Concat(metadata.BodySnippets),
+            MaxBodySnippets + MaxHeadingSnippets,
+            allowShort: true);
+    }
+
+    private static string BuildEvidence(PageMetadata metadata, string fallback)
+    {
+        var evidence = DistinctCleanValues(
+            metadata.BodySnippets
+                .Concat(metadata.Headings)
+                .Prepend(metadata.OgDescription)
+                .Prepend(metadata.Description),
+            4,
+            allowShort: true);
+
+        return FirstMeaningful(string.Join(" / ", evidence), fallback);
+    }
+
+    private static string BuildCompanyOrIdea(string productName, AppTypeRule selected, PageMetadata metadata, string evidence)
+    {
+        var focus = Clip(FirstMeaningful(
+            metadata.Description,
+            metadata.OgDescription,
+            metadata.Headings.FirstOrDefault(),
+            metadata.BodySnippets.FirstOrDefault(),
+            evidence), 170);
+
+        var offer = selected.Name switch
+        {
+            "Digital transformation / software consulting" => "digital transformation and software consulting for companies",
+            "Industrial / manufacturing" => "industrial operations, production or maintenance solutions",
+            "B2B SaaS / automation" => "B2B workflow automation and operational software",
+            "AI product" => "AI-assisted automation or productivity software",
+            "Marketing / growth tool" => "marketing and growth campaign software",
+            "Local services" => "local services for customers who need reliable help",
+            _ => selected.Name.ToLowerInvariant()
+        };
+
+        return Clip($"{productName} provides {offer}. Site focus: {focus}", 400);
+    }
+
+    private static string[] ExtractHeadings(string html)
+    {
+        return Regex.Matches(html, @"<h[1-3]\b[^>]*>(.*?)</h[1-3]>", RegexOptions.IgnoreCase | RegexOptions.Singleline)
+            .Select(match => CleanHtml(match.Groups[1].Value))
+            .Where(value => !string.IsNullOrWhiteSpace(value) && value.Length > 2 && !IsNoisySnippet(value))
+            .DistinctBy(NormalizeForSearch)
+            .Take(MaxHeadingSnippets)
+            .ToArray();
+    }
+
+    private static string[] ExtractBodySnippets(string html)
+    {
+        var blockSeparated = Regex.Replace(
+            html,
+            @"</?(?:address|article|aside|blockquote|br|dd|div|dl|dt|figcaption|footer|form|h[1-6]|header|hr|li|main|nav|ol|p|section|table|td|th|tr|ul)\b[^>]*>",
+            "\n",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        var decoded = WebUtility.HtmlDecode(blockSeparated);
+        var withoutTags = Regex.Replace(decoded, "<[^>]+>", " ");
+        var normalized = Regex.Replace(withoutTags, @"[ \t\f\v]+", " ");
+        var chunks = Regex.Split(normalized, @"\n+|(?<=[.!?])\s+");
+
+        return DistinctCleanValues(chunks, MaxBodySnippets, allowShort: false);
+    }
+
+    private static string[] ExtractLinks(string html)
+    {
+        return Regex.Matches(html, @"<a\b[^>]*\bhref\s*=\s*(?:(['""])(.*?)\1|([^>\s]+))", RegexOptions.IgnoreCase | RegexOptions.Singleline)
+            .Select(match => WebUtility.HtmlDecode(match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value).Trim())
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(120)
+            .ToArray();
+    }
+
+    private static string RemoveNoisyHtml(string html)
+    {
+        var withoutComments = Regex.Replace(html, "<!--.*?-->", " ", RegexOptions.Singleline);
+        return Regex.Replace(
+            withoutComments,
+            @"<(script|style|noscript|svg|canvas|iframe)\b[^>]*>.*?</\1>",
+            " ",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline);
+    }
+
+    private static string[] DistinctCleanValues(IEnumerable<string> values, int maxCount, bool allowShort)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var clean = new List<string>();
+
+        foreach (var value in values)
+        {
+            var cleaned = CleanHtml(value);
+            if (string.IsNullOrWhiteSpace(cleaned))
+                continue;
+
+            if (!allowShort && cleaned.Length < 28)
+                continue;
+
+            if (IsNoisySnippet(cleaned))
+                continue;
+
+            if (!seen.Add(NormalizeForSearch(cleaned)))
+                continue;
+
+            clean.Add(cleaned);
+            if (clean.Count >= maxCount)
+                break;
+        }
+
+        return clean.ToArray();
+    }
+
+    private static bool IsNoisySnippet(string value)
+    {
+        var normalized = NormalizeForSearch(value);
+        if (normalized.Length <= 2)
+            return true;
+
+        var noisyPhrases = new[]
+        {
+            "click here",
+            "saber mais",
+            "top",
+            "latest news",
+            "lorem ipsum",
+            "follow us",
+            "siga nos",
+            "politica de privacidade",
+            "privacy policy",
+            "todos os direitos reservados",
+            "powered by",
+            "please leave this field empty",
+            "por favor escolha uma opcao",
+            "chamada para a rede fixa nacional"
+        };
+
+        return noisyPhrases.Any(phrase => normalized.Contains(phrase, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string NormalizeUrl(string url)
@@ -247,6 +494,24 @@ public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
 
     private static string CleanProductName(string title, Uri uri)
     {
+        var parts = Regex.Split(title, @"\s+(?:\||-|·|—|–)\s+")
+            .Select(part => Regex.Replace(part.Trim(), @"^(home|homepage|inicio|início)\s+", string.Empty, RegexOptions.IgnoreCase).Trim())
+            .Where(part => !string.IsNullOrWhiteSpace(part))
+            .ToList();
+
+        if (parts.Count > 0)
+        {
+            var selected = parts
+                .OrderBy(part => IsGenericTitlePart(part) ? 1 : 0)
+                .ThenBy(part => part.Length)
+                .First();
+
+            if (IsGenericTitlePart(selected))
+                return DomainName(uri);
+
+            return string.IsNullOrWhiteSpace(selected) ? DomainName(uri) : selected;
+        }
+
         var cleaned = title;
         foreach (var separator in new[] { " | ", " - ", " · ", " — ", " – " })
         {
@@ -262,9 +527,59 @@ public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
         return string.IsNullOrWhiteSpace(cleaned) ? DomainName(uri) : cleaned;
     }
 
+    private static bool IsGenericTitlePart(string value)
+    {
+        var normalized = NormalizeForSearch(value);
+        return normalized is "home" or "homepage" or "inicio" or "welcome";
+    }
+
+    private static bool HostMatches(Uri expected, Uri candidate)
+    {
+        return string.Equals(NormalizeHost(expected.Host), NormalizeHost(candidate.Host), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeHost(string host)
+    {
+        return host.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? host[4..] : host;
+    }
+
+    private static Uri StripQueryAndFragment(Uri uri)
+    {
+        var builder = new UriBuilder(uri)
+        {
+            Query = string.Empty,
+            Fragment = string.Empty
+        };
+
+        return builder.Uri;
+    }
+
+    private static string UriKey(Uri uri)
+    {
+        var path = uri.AbsolutePath.TrimEnd('/');
+        return $"{NormalizeHost(uri.Host)}{(string.IsNullOrWhiteSpace(path) ? "/" : path)}";
+    }
+
+    private static bool LooksLikeAsset(string path)
+    {
+        return Regex.IsMatch(path, @"\.(?:pdf|jpe?g|png|gif|webp|svg|css|js|zip|rar|docx?|xlsx?|pptx?|mp4|mp3|avi|mov)$", RegexOptions.IgnoreCase);
+    }
+
+    private static int InternalLinkScore(Uri uri)
+    {
+        var searchable = NormalizeForSearch(uri.AbsolutePath.Replace('-', ' ').Replace('_', ' '));
+        var score = UsefulInternalLinkHints.Count(hint => searchable.Contains(NormalizeForSearch(hint), StringComparison.OrdinalIgnoreCase)) * 10;
+        var segmentCount = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Length;
+
+        if (segmentCount <= 2)
+            score += 2;
+
+        return score;
+    }
+
     private static string DomainName(Uri uri)
     {
-        var host = uri.Host.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? uri.Host[4..] : uri.Host;
+        var host = NormalizeHost(uri.Host);
         var first = host.Split('.', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "Online application";
         return string.Join(" ", Regex.Split(first, "[-_]")).Trim();
     }
@@ -279,9 +594,27 @@ public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
 
     private static bool KeywordMatches(string body, string keyword)
     {
-        return keyword.Length <= 3
-            ? Regex.IsMatch(body, $@"\b{Regex.Escape(keyword)}\b", RegexOptions.IgnoreCase)
-            : body.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+        var normalizedKeyword = NormalizeForSearch(keyword);
+        return normalizedKeyword.Length <= 3
+            ? Regex.IsMatch(body, $@"\b{Regex.Escape(normalizedKeyword)}\b", RegexOptions.IgnoreCase)
+            : body.Contains(normalizedKeyword, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeForSearch(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var normalized = value.Normalize(NormalizationForm.FormD);
+        var builder = new StringBuilder(normalized.Length);
+        foreach (var character in normalized)
+        {
+            var category = CharUnicodeInfo.GetUnicodeCategory(character);
+            if (category != UnicodeCategory.NonSpacingMark)
+                builder.Append(char.ToLowerInvariant(character));
+        }
+
+        return Regex.Replace(builder.ToString().Normalize(NormalizationForm.FormC), @"\s+", " ").Trim();
     }
 
     public sealed record PageMetadata(
@@ -289,7 +622,21 @@ public sealed class UrlCampaignBriefSuggester : IUrlCampaignBriefSuggester
         string Description,
         string OgTitle,
         string OgDescription,
-        string ApplicationName);
+        string ApplicationName,
+        IReadOnlyList<string> Headings,
+        IReadOnlyList<string> BodySnippets,
+        IReadOnlyList<string> InternalLinks)
+    {
+        public PageMetadata(
+            string title,
+            string description,
+            string ogTitle,
+            string ogDescription,
+            string applicationName)
+            : this(title, description, ogTitle, ogDescription, applicationName, [], [], [])
+        {
+        }
+    }
 
     private sealed record AppTypeRule(
         string Name,

@@ -4,59 +4,118 @@
     ViewData["Title"] = "Help desk";
 }
 
-<div class="account-page">
-    <div class="account-heading">
+<div class="helpdesk-page">
+    <section class="app-page-hero helpdesk-hero">
         <div>
-            <span class="tag mb-2">Account & settings</span>
-            <h1 class="fw-bold mb-0">Help desk</h1>
-            <p class="muted mb-0">Open a support ticket when something is broken or you need help with campaigns, billing or marketing channels.</p>
+            <span class="tag mb-3">Account and settings</span>
+            <h1 class="hero-title fw-bold mb-2">Help desk</h1>
+            <p class="lead muted mb-0">Open one focused ticket with the page, campaign, provider and result you expected.</p>
         </div>
-    </div>
+        <div class="helpdesk-hero-panel">
+            <span><i class="bi bi-life-preserver"></i></span>
+            <div>
+                <strong>Support queue</strong>
+                <small>Tickets stay linked to this workspace.</small>
+            </div>
+        </div>
+    </section>
 
     @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
     {
         <div class="alert alert-success mt-4 mb-0">@Model.StatusMessage</div>
     }
 
-    <section class="account-section mt-4">
-        <div class="account-section-title">Open new support ticket</div>
-        <form method="post" class="helpdesk-form">
-            <div asp-validation-summary="ModelOnly" class="alert alert-warning support-validation-summary"></div>
+    <div class="helpdesk-layout mt-4">
+        <section class="surface app-panel helpdesk-ticket-panel">
+            <div class="app-panel-header helpdesk-panel-header">
+                <div>
+                    <h2>Open support ticket</h2>
+                    <p>Use the same email address where the team should reply.</p>
+                </div>
+                <span class="helpdesk-panel-badge"><i class="bi bi-headset"></i> Workspace support</span>
+            </div>
 
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label asp-for="Input.Name" class="form-label"></label>
-                    <input asp-for="Input.Name" class="form-control" placeholder="Your name" autocomplete="name" required />
-                    <span asp-validation-for="Input.Name" class="text-danger"></span>
+            <form method="post" class="helpdesk-form">
+                <div asp-validation-summary="ModelOnly" class="alert alert-warning support-validation-summary"></div>
+
+                <div class="helpdesk-form-grid">
+                    <div class="helpdesk-field">
+                        <label asp-for="Input.Name" class="form-label"></label>
+                        <input asp-for="Input.Name" class="form-control" placeholder="Your name" autocomplete="name" required />
+                        <span asp-validation-for="Input.Name" class="text-danger"></span>
+                    </div>
+                    <div class="helpdesk-field">
+                        <label asp-for="Input.Email" class="form-label"></label>
+                        <input asp-for="Input.Email" class="form-control" placeholder="you@example.com" autocomplete="email" required />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+                    <div class="helpdesk-field helpdesk-field-wide">
+                        <label asp-for="Input.Subject" class="form-label"></label>
+                        <input asp-for="Input.Subject" class="form-control" placeholder="Short issue summary" maxlength="160" required />
+                        <div class="form-text">Example: Payment confirmation not updating.</div>
+                        <span asp-validation-for="Input.Subject" class="text-danger"></span>
+                    </div>
+                    <div class="helpdesk-field helpdesk-field-wide">
+                        <label asp-for="Input.Message" class="form-label"></label>
+                        <textarea asp-for="Input.Message" class="form-control helpdesk-message" placeholder="Describe what happened, where it happened, and what you expected instead." maxlength="4000" required></textarea>
+                        <div class="form-text">Include the page, campaign source, payment provider or marketing channel when relevant.</div>
+                        <span asp-validation-for="Input.Message" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label asp-for="Input.Email" class="form-label"></label>
-                    <input asp-for="Input.Email" class="form-control" placeholder="you@example.com" autocomplete="email" required />
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+
+                <div class="helpdesk-actions">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-send me-1"></i>Submit ticket</button>
+                    <span class="helpdesk-action-note">Avoid duplicate tickets for the same issue. Add follow-up details by replying to the confirmation email.</span>
                 </div>
-                <div class="col-md-7">
-                    <label asp-for="Input.Subject" class="form-label"></label>
-                    <input asp-for="Input.Subject" class="form-control" placeholder="Short issue summary" maxlength="160" required />
-                    <div class="form-text">Example: Payment confirmation not updating.</div>
-                    <span asp-validation-for="Input.Subject" class="text-danger"></span>
-                </div>
-                <div class="col-12">
-                    <label asp-for="Input.Message" class="form-label"></label>
-                    <textarea asp-for="Input.Message" class="form-control helpdesk-message" placeholder="Describe what happened, where it happened, and what you expected instead." maxlength="4000" required></textarea>
-                    <div class="form-text">Include the page, campaign source, payment provider or marketing channel when relevant.</div>
-                    <span asp-validation-for="Input.Message" class="text-danger"></span>
+            </form>
+        </section>
+
+        <aside class="surface app-panel helpdesk-side-panel" aria-label="Ticket guidance">
+            <div class="helpdesk-side-head">
+                <span class="app-stat-icon"><i class="bi bi-clipboard2-check"></i></span>
+                <div>
+                    <h2>What helps support</h2>
+                    <p>Include the exact workflow and where it failed.</p>
                 </div>
             </div>
 
-            <button class="btn btn-primary mt-4" type="submit"><i class="bi bi-send me-1"></i> Submit new ticket</button>
-        </form>
-        <p class="small muted mt-4 mb-0">
-            Note: please do not open duplicate tickets for the same issue. Add follow-up details by replying to the confirmation email or opening a new ticket only when the issue is different.
-        </p>
-    </section>
+            <div class="helpdesk-checklist">
+                <div>
+                    <i class="bi bi-window-sidebar"></i>
+                    <span>
+                        <strong>Page or campaign</strong>
+                        <small>Dashboard, billing, channel, campaign name or source.</small>
+                    </span>
+                </div>
+                <div>
+                    <i class="bi bi-credit-card-2-front"></i>
+                    <span>
+                        <strong>Provider details</strong>
+                        <small>Payment provider, social channel or email integration.</small>
+                    </span>
+                </div>
+                <div>
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>
+                        <strong>Expected result</strong>
+                        <small>What you clicked, what happened and what should happen.</small>
+                    </span>
+                </div>
+            </div>
 
-    <section class="account-section mt-4">
-        <div class="account-section-title">Recent tickets</div>
+            <a class="btn btn-outline-secondary w-100 mt-3" asp-page="/App/Settings">
+                <i class="bi bi-broadcast-pin me-1"></i>Check channels
+            </a>
+        </aside>
+    </div>
+
+    <section class="surface app-panel helpdesk-recent-panel mt-4">
+        <div class="app-panel-header">
+            <div>
+                <h2>Recent tickets</h2>
+                <p>Latest requests opened from this workspace.</p>
+            </div>
+        </div>
         @if (!Model.Tickets.Any())
         {
             <div class="empty-state compact">
@@ -67,7 +126,7 @@
         else
         {
             <div class="table-responsive">
-                <table class="table table-sm align-middle">
+                <table class="table table-sm align-middle helpdesk-table">
                     <thead>
                         <tr>
                             <th>When</th>
@@ -81,7 +140,7 @@
                         <tr>
                             <td class="text-muted">@ticket.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td>@ticket.Subject</td>
-                            <td><span class="badge text-bg-secondary">@ticket.Status</span></td>
+                            <td><span class="badge text-bg-secondary helpdesk-ticket-status">@ticket.Status</span></td>
                         </tr>
                     }
                     </tbody>

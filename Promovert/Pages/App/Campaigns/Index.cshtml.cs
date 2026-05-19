@@ -242,12 +242,14 @@ public class CampaignsIndexModel : PageModel
 
         AiCampaigns = await _db.MarketingPlans
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(x => x.Posts)
             .Include(x => x.Emails)
             .Include(x => x.Leads)
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.UpdatedAtUtc)
             .ThenByDescending(x => x.CreatedAtUtc)
+            .Take(50)
             .ToListAsync();
 
         ScheduleSettings = await _db.UserNotificationSettings

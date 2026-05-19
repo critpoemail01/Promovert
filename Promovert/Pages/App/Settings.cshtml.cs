@@ -410,7 +410,7 @@ public class SettingsModel : PageModel
             return;
 
         if (!Regex.IsMatch(cleaned, "^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$"))
-            ModelState.AddModelError(fieldName, "Use a valid hex color, for example #14b8a6.");
+            ModelState.AddModelError(fieldName, "Use a valid hex color, for example #2dd4bf.");
     }
 
     private static string? Clean(string? value)

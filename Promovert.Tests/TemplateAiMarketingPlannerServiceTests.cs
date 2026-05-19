@@ -95,4 +95,32 @@ public class TemplateAiMarketingPlannerServiceTests
             Assert.Contains("Lisbon", lead.Reason);
         });
     }
+
+    [Fact]
+    public void Generate_WithProvidedEmails_CreatesClientPromotionalEmailTemplate()
+    {
+        var service = new TemplateAiMarketingPlannerService();
+
+        var draft = service.Generate(new AiMarketingPlanRequest(
+            "Advance",
+            "https://advance.com.pt",
+            "Advance provides digital transformation and software consulting for companies.",
+            "companies that need custom software and process automation",
+            "integrated digital workflows with software, automation and data platforms",
+            "qualified project enquiries",
+            "consultative and practical",
+            ["LinkedIn"],
+            new DateOnly(2026, 5, 18),
+            new DateOnly(2026, 5, 24),
+            "Daily",
+            "ana@example.com\njoao@example.com",
+            new AiAudienceLocation("World", null, null, null, null, null)));
+
+        var email = Assert.Single(draft.Emails, x => x.DayNumber == 1);
+        Assert.Equal("Provided potential-client list", email.AudienceSegment);
+        Assert.Equal(2, email.EstimatedReach);
+        Assert.Contains("I wanted to introduce Advance", email.Body);
+        Assert.Contains("digital transformation and software consulting", email.Body);
+        Assert.Contains("https://advance.com.pt", email.Body);
+    }
 }

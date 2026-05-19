@@ -42,6 +42,35 @@ public class UrlCampaignBriefSuggesterTests
     }
 
     [Fact]
+    public void ExtractMetadata_ReadsVisibleBodySignalsAndInternalLinks()
+    {
+        const string html = """
+            <html>
+              <head>
+                <title>Home Advance - Advance</title>
+                <script>window.hidden = 'Ignore this campaign signal';</script>
+              </head>
+              <body>
+                <main>
+                  <h1>Transformação Digital</h1>
+                  <p>Desenvolvimento de soluções de software ajustadas e otimizadas para empresas.</p>
+                  <p>Digitalização e automatização de processos com integração de sistemas.</p>
+                  <a href="/sobre">Sobre</a>
+                </main>
+              </body>
+            </html>
+            """;
+
+        var metadata = UrlCampaignBriefSuggester.ExtractMetadata(html);
+
+        Assert.Contains("Transformação Digital", metadata.Headings);
+        Assert.Contains(metadata.BodySnippets, snippet => snippet.Contains("soluções de software", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(metadata.BodySnippets, snippet => snippet.Contains("automatização de processos", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(metadata.BodySnippets, snippet => snippet.Contains("Ignore this campaign signal", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("/sobre", metadata.InternalLinks);
+    }
+
+    [Fact]
     public void SuggestFromPage_DetectsIndustrialCompanyWithoutForcingSoftware()
     {
         var metadata = new UrlCampaignBriefSuggester.PageMetadata(
@@ -56,5 +85,36 @@ public class UrlCampaignBriefSuggesterTests
         Assert.Equal("Industrial / manufacturing", suggestion.DetectedApplicationType);
         Assert.Contains("industrial", suggestion.TargetAudience, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("diagnostic", suggestion.CampaignGoal, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SuggestFromPage_UsesWebsiteBodySignalsInBrief()
+    {
+        var metadata = new UrlCampaignBriefSuggester.PageMetadata(
+            "Home Advance - Advance",
+            "",
+            "",
+            "",
+            "",
+            [
+                "Transformação Digital",
+                "Consultoria Industrial"
+            ],
+            [
+                "Desenvolvimento de Soluções de software Ajustadas e Otimizadas",
+                "Digitalização e Automatização de Processos",
+                "Implementação e Integração do SBI"
+            ],
+            []);
+
+        var suggestion = UrlCampaignBriefSuggester.SuggestFromPage(new Uri("https://advance.com.pt"), metadata);
+
+        Assert.Equal("Advance", suggestion.ProductName);
+        Assert.Equal("Digital transformation / software consulting", suggestion.DetectedApplicationType);
+        Assert.True(suggestion.CompanyOrIdea.Length <= 400);
+        Assert.Contains("software consulting", suggestion.CompanyOrIdea, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("custom software", suggestion.TargetAudience, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("SBI", suggestion.ValueProposition, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Soluções de software", suggestion.Evidence, StringComparison.OrdinalIgnoreCase);
     }
 }

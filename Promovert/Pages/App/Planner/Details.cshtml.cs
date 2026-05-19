@@ -388,7 +388,7 @@ public class DetailsModel : PageModel
         StatusMessage = "All generated posts are approved. You can now schedule the approved posts.";
         await _db.SaveChangesAsync();
 
-        return RedirectToPage(null, null, new { id }, "post-review");
+        return RedirectToPage("/App/Campaigns/Index");
     }
 
     public async Task<IActionResult> OnPostScheduleApprovedAsync(int id)
